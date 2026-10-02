@@ -159,6 +159,18 @@ try{
     $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] reply_notifiedon migration failed: '.$e->getMessage());
 }
 
+$expectedFiles=array(
+    MODX_CORE_PATH.'components/modxcomments/controllers/index.class.php',
+    MODX_CORE_PATH.'components/modxcomments/model/',
+    MODX_ASSETS_PATH.'components/modxcomments/js/comments.js',
+);
+
+foreach($expectedFiles as $expectedPath){
+    if(!file_exists($expectedPath)){
+        $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] Installed file/path is missing: '.$expectedPath);
+    }
+}
+
 foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxCommentsOnCommentDelete') as $eventName){
     $event=$modx->getObject('modEvent',$eventName);
     if(!$event){
