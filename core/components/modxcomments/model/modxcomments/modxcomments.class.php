@@ -25,6 +25,9 @@ class ModxComments
             'turnstileSiteKey' => '',
             'turnstileSecretKey' => '',
             'turnstileGuestsOnly' => true,
+            'notifyAdmin' => false,
+            'notifyAdminEmail' => '',
+            'notifyReplies' => false,
         );
 
         $settings = array(
@@ -40,6 +43,9 @@ class ModxComments
             'turnstileSiteKey' => (string) $modx->getOption('modxcomments.turnstile_site_key', null, $defaults['turnstileSiteKey']),
             'turnstileSecretKey' => (string) $modx->getOption('modxcomments.turnstile_secret_key', null, $defaults['turnstileSecretKey']),
             'turnstileGuestsOnly' => (bool) $modx->getOption('modxcomments.turnstile_guests_only', null, $defaults['turnstileGuestsOnly']),
+            'notifyAdmin' => (bool) $modx->getOption('modxcomments.notify_admin', null, $defaults['notifyAdmin']),
+            'notifyAdminEmail' => trim((string) $modx->getOption('modxcomments.notify_admin_email', null, $defaults['notifyAdminEmail'])),
+            'notifyReplies' => (bool) $modx->getOption('modxcomments.notify_replies', null, $defaults['notifyReplies']),
         );
 
         $this->config = array_merge($defaults, $settings, $config);
@@ -235,6 +241,11 @@ class ModxComments
             'service' => $this,
         ));
 
+        $this->notifyAdmin($comment);
+        if ($comment->get('status') === 'published') {
+            $this->notifyReplyAuthor($comment);
+        }
+
         return $this->serializeComment($comment);
     }
 
@@ -328,6 +339,121 @@ class ModxComments
             'votes' => $this->getVoteSummary($id, $voterHash),
             'myVote' => $myVote,
         );
+    }
+
+    public function notifyReplyAuthor($comment)
+    {
+        if (!$this->config['notifyReplies']) return false;
+        if (!$comment || (int) $comment->get('parent_id') < 1) return false;
+        if ($comment->get('status') !== 'published') return false;
+        if ($comment->get('reply_notifiedon')) return false;
+
+        $parent = $this->modx->getObject('ModxCommentsComment', (int) $comment->get('parent_id'));
+        if (!$parent) return false;
+
+        $email = trim((string) $parent->get('author_email'));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
+
+        $childEmail = trim((string) $comment->get('author_email'));
+        if ($childEmail !== '' && strcasecmp($childEmail, $email) === 0) return false;
+
+        $siteName = (string) $this->modx->getOption('site_name', null, 'Website');
+        $author = trim((string) $comment->get('author_name'));
+        $url = $this->getCommentUrl($comment);
+
+        $subject = '[' . $siteName . '] New reply to your comment';
+        $body = "Hello!\n\n"
+            . ($author !== '' ? $author : 'Someone')
+            . " replied to your comment.\n\n"
+            . $this->plainExcerpt((string) $comment->get('content'), 500)
+            . "\n\nOpen reply: " . $url . "\n";
+
+        $sent = $this->sendMail($email, $subject, $body);
+        if ($sent) {
+            $comment->set('reply_notifiedon', date('Y-m-d H:i:s'));
+            $comment->save();
+        }
+
+        return $sent;
+    }
+
+    protected function notifyAdmin($comment)
+    {
+        if (!$this->config['notifyAdmin']) return false;
+
+        $email = $this->config['notifyAdminEmail'];
+        if ($email === '') {
+            $email = trim((string) $this->modx->getOption('emailsender', null, ''));
+        }
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->modx->log(modX::LOG_LEVEL_WARN, '[ModxComments] Admin notification email is not configured.');
+            return false;
+        }
+
+        $resource = $this->modx->getObject('modResource', (int) $comment->get('resource_id'));
+        $resourceTitle = $resource ? (string) $resource->get('pagetitle') : ('#' . $comment->get('resource_id'));
+        $siteName = (string) $this->modx->getOption('site_name', null, 'Website');
+        $status = (string) $comment->get('status');
+
+        $subject = '[' . $siteName . '] New comment (' . $status . ')';
+        $body = "New comment received.\n\n"
+            . "Status: " . $status . "\n"
+            . "Resource: " . $resourceTitle . " (#" . (int) $comment->get('resource_id') . ")\n"
+            . "Author: " . (string) $comment->get('author_name') . "\n"
+            . "Email: " . (string) $comment->get('author_email') . "\n\n"
+            . $this->plainExcerpt((string) $comment->get('content'), 1200)
+            . "\n\nComment URL: " . $this->getCommentUrl($comment) . "\n";
+
+        return $this->sendMail($email, $subject, $body);
+    }
+
+    protected function sendMail($to, $subject, $body)
+    {
+        try {
+            $mail = $this->modx->getService('mail', 'mail.modPHPMailer');
+            if (!$mail) {
+                $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] MODX mail service is unavailable.');
+                return false;
+            }
+
+            $from = trim((string) $this->modx->getOption('emailsender', null, ''));
+            $fromName = trim((string) $this->modx->getOption('site_name', null, 'ModxComments'));
+
+            $mail->set(modMail::MAIL_BODY, $body);
+            $mail->set(modMail::MAIL_BODY_TEXT, $body);
+            $mail->set(modMail::MAIL_FROM, $from);
+            $mail->set(modMail::MAIL_FROM_NAME, $fromName);
+            $mail->set(modMail::MAIL_SENDER, $from);
+            $mail->set(modMail::MAIL_SUBJECT, $subject);
+            $mail->set(modMail::MAIL_CHARSET, 'UTF-8');
+            $mail->address('to', $to);
+
+            $sent = $mail->send();
+            if (!$sent) {
+                $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] Email notification could not be sent to ' . $to);
+            }
+            $mail->reset();
+
+            return (bool) $sent;
+        } catch (Exception $e) {
+            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] Email notification error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    protected function getCommentUrl($comment)
+    {
+        $resourceId = (int) $comment->get('resource_id');
+        $contextKey = (string) $comment->get('context_key');
+        $url = $this->modx->makeUrl($resourceId, $contextKey, '', 'full');
+        return $url . '#comment-' . (int) $comment->get('id');
+    }
+
+    protected function plainExcerpt($text, $limit)
+    {
+        $text = trim(preg_replace('/\\s+/u', ' ', (string) $text));
+        if ($this->stringLength($text) <= $limit) return $text;
+        return $this->stringSlice($text, 0, max(1, $limit - 1)) . '…';
     }
 
     public function cleanContextKey($contextKey)
