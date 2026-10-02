@@ -35,7 +35,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta9');
+$builder->createPackage('modxcomments','0.2.0','beta10');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -91,9 +91,9 @@ $builder->setPackageAttributes(array(
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-beta9\n- Hotfix for transport metadata fallback during package build.\n"
+        "ModxComments 0.2.0-beta10\n- Hotfix for transport metadata fallback during package build.\n"
     ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta9 transport package.\n";
+echo "Built ModxComments 0.2.0-beta10 transport package.\n";
