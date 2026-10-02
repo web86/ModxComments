@@ -17,6 +17,7 @@
         <field key="createdon" dbtype="datetime" phptype="datetime" null="false" />
         <field key="editedon" dbtype="datetime" phptype="datetime" null="true" default="NULL" />
         <field key="deletedon" dbtype="datetime" phptype="datetime" null="true" default="NULL" />
+        <field key="reply_notifiedon" dbtype="datetime" phptype="datetime" null="true" default="NULL" />
         <field key="ip_hash" dbtype="char" precision="64" phptype="string" null="false" default="" />
         <field key="user_agent_hash" dbtype="char" precision="64" phptype="string" null="false" default="" />
 
