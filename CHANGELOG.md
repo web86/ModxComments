@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-beta6
+- Add localized names and clear descriptions for every ModxComments system setting.
+- Document and clarify `guest_status=pending` / `user_status=pending` moderation defaults.
+- Add visible comment numbers and permalinks such as `#comment-123`.
+- Highlight a comment when opened by its permalink.
+- Migrate ModxComments tables and public API connection to `utf8mb4` for 4-byte emoji.
+- Expand the link toolbar to separate link text and URL fields.
+- Add safe labeled-link syntax `[text](https://url)` while keeping arbitrary HTML escaped.
+
 ## 0.2.0-beta5
 - Require guest email on both frontend and server.
 - Add a hidden honeypot anti-spam field.
