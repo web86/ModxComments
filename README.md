@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta7
+# ModxComments 0.2.0-beta8
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -50,7 +50,7 @@ Uninstall intentionally does **not** drop comment data.
 
 ## Updating from 0.2.0-beta
 
-Build/install `0.2.0-beta7` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-beta8` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
 
 ```text
 namespace = modxcomments
@@ -171,3 +171,16 @@ modxcomments.notify_replies = 0
 - `notify_replies=1`: notify the author of the parent comment when a reply is actually published. A pending reply triggers the notification only after moderation publishes it.
 
 Mail delivery uses the normal MODX mail/SMTP settings.
+
+
+## beta8 manager thread view
+
+The manager comments grid now renders comment relationships visually:
+
+- newest threads are grouped together;
+- replies are indented according to `depth`;
+- reply rows show the parent author and a short parent excerpt;
+- root rows are visually separated as the start of a thread;
+- comments written by a MODX user with `sudo=1` or membership in the `Administrator` group receive an Admin badge and highlighted row.
+
+Transport package metadata is now read through a safe helper with embedded fallbacks, so Instructions/Readme, License and Changelog are always strings rather than boolean `false`.
