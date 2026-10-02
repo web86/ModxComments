@@ -22,8 +22,20 @@ if(!$generator->parseSchema($schema,$modelPath)){
     exit(1);
 }
 
+$readPackageText=function($path,$fallback){
+    if(is_file($path) && is_readable($path)){
+        $data=file_get_contents($path);
+        if($data!==false && trim($data)!==''){
+            return $data;
+        }
+    }
+
+    $modx->log(modX::LOG_LEVEL_WARN,'[ModxComments] Package metadata file is missing/unreadable: '.$path.'. Using embedded fallback.');
+    return $fallback;
+};
+
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta7');
+$builder->createPackage('modxcomments','0.2.0','beta8');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -69,10 +81,19 @@ $vehicle->resolve('php',array(
 
 $builder->putVehicle($vehicle);
 $builder->setPackageAttributes(array(
-    'license'=>file_get_contents($root.'/LICENSE'),
-    'readme'=>file_get_contents($root.'/docs/INSTALL.md'),
-    'changelog'=>file_get_contents($root.'/CHANGELOG.md'),
+    'license'=>$readPackageText(
+        $root.'/LICENSE',
+        "ModxComments\n\nCopyright (c) 2026 web86.\nAll rights reserved.\n"
+    ),
+    'readme'=>$readPackageText(
+        $root.'/docs/INSTALL.md',
+        "ModxComments installation\n\nInstall the package, clear MODX cache and add [[ModxComments]] to a resource/template.\n"
+    ),
+    'changelog'=>$readPackageText(
+        $root.'/CHANGELOG.md',
+        "ModxComments 0.2.0-beta8\n- Manager thread view and administrator reply highlighting.\n"
+    ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta7 transport package.\n";
+echo "Built ModxComments 0.2.0-beta8 transport package.\n";
