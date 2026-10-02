@@ -1,5 +1,6 @@
 <?php
 $_lang['modxcomments']='Comments';
+$_lang['modxcomments.intro']='Review, search and moderate comments from one place. Right-click or double-click a row for actions.';
 $_lang['modxcomments.resource']='Resource';
 $_lang['modxcomments.author']='Author';
 $_lang['modxcomments.email']='Email';
@@ -7,6 +8,7 @@ $_lang['modxcomments.comment']='Comment';
 $_lang['modxcomments.status']='Status';
 $_lang['modxcomments.createdon']='Created';
 $_lang['modxcomments.search']='Search comments…';
+$_lang['modxcomments.clear']='Clear';
 $_lang['modxcomments.all']='All';
 $_lang['modxcomments.published']='Published';
 $_lang['modxcomments.pending']='Pending';
@@ -16,4 +18,6 @@ $_lang['modxcomments.mark_pending']='Mark pending';
 $_lang['modxcomments.mark_spam']='Mark spam';
 $_lang['modxcomments.delete']='Delete';
 $_lang['modxcomments.delete_confirm']='Soft-delete this comment? Replies will remain.';
+$_lang['modxcomments.status_updated']='Comment status updated.';
+$_lang['modxcomments.deleted']='Comment deleted.';
 $_lang['modxcomments.actions']='Actions';
