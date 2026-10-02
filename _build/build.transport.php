@@ -22,7 +22,7 @@ if(!$generator->parseSchema($schema,$modelPath)){
     exit(1);
 }
 
-$readPackageText=function($path,$fallback){
+$readPackageText=function($path,$fallback) use ($modx){
     if(is_file($path) && is_readable($path)){
         $data=file_get_contents($path);
         if($data!==false && trim($data)!==''){
@@ -35,7 +35,7 @@ $readPackageText=function($path,$fallback){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta8');
+$builder->createPackage('modxcomments','0.2.0','beta9');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -91,9 +91,9 @@ $builder->setPackageAttributes(array(
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-beta8\n- Manager thread view and administrator reply highlighting.\n"
+        "ModxComments 0.2.0-beta9\n- Hotfix for transport metadata fallback during package build.\n"
     ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta8 transport package.\n";
+echo "Built ModxComments 0.2.0-beta9 transport package.\n";
