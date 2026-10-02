@@ -129,8 +129,15 @@
               </div>
 
               <div class="mc-link-panel" data-mc-link-panel hidden>
-                <input type="url" placeholder="https://example.com" data-mc-link-input>
-                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-link-insert>Insert</button>
+                <label>
+                  <span>Link text</span>
+                  <input type="text" maxlength="200" placeholder="OpenAI" data-mc-link-text>
+                </label>
+                <label>
+                  <span>URL</span>
+                  <input type="url" placeholder="https://example.com" data-mc-link-input>
+                </label>
+                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-link-insert>Insert link</button>
               </div>
 
               <div class="mc-emoji-panel" data-mc-emoji-panel hidden>
@@ -185,17 +192,29 @@
       const linkToggle = composer.querySelector('[data-mc-link-toggle]');
       const linkPanel = composer.querySelector('[data-mc-link-panel]');
       const linkInput = composer.querySelector('[data-mc-link-input]');
+      const linkText = composer.querySelector('[data-mc-link-text]');
       linkToggle.addEventListener('click', () => {
         linkPanel.hidden = !linkPanel.hidden;
         emojiPanel.hidden = true;
-        if (!linkPanel.hidden) linkInput.focus();
+        if (!linkPanel.hidden) linkText.focus();
       });
 
       composer.querySelector('[data-mc-link-insert]').addEventListener('click', () => {
         let url = linkInput.value.trim();
-        if (!url) return;
+        let label = linkText.value.trim();
+
+        if (!url) {
+          linkInput.focus();
+          return;
+        }
+
         if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
-        this.insertAtCursor(textarea, url);
+        if (!label) label = url;
+
+        label = label.replace(/[\[\]\r\n]/g, ' ').trim().slice(0, 200);
+        this.insertAtCursor(textarea, `[${label}](${url})`);
+
+        linkText.value = '';
         linkInput.value = '';
         linkPanel.hidden = true;
       });
@@ -224,15 +243,15 @@
 
       if (comment.deleted) {
         return `
-          <article class="mc-comment is-deleted" data-comment-id="${id}" style="--mc-depth:${depth}">
-            <div class="mc-deleted">Comment deleted</div>
+          <article id="comment-${id}" class="mc-comment is-deleted" data-comment-id="${id}" style="--mc-depth:${depth}">
+            <div class="mc-deleted"><a class="mc-permalink" href="#comment-${id}">#${id}</a> Comment deleted</div>
           </article>
         `;
       }
 
       if (this.editingId === id) {
         return `
-          <article class="mc-comment is-editing" data-comment-id="${id}" style="--mc-depth:${depth}">
+          <article id="comment-${id}" class="mc-comment is-editing" data-comment-id="${id}" style="--mc-depth:${depth}">
             ${this.renderCommentHeader(comment)}
             ${this.renderReplyQuote(comment)}
             <div class="mc-inline-panel">
@@ -271,7 +290,7 @@
       const votes = comment.votes || { up: 0, down: 0, mine: 0 };
 
       return `
-        <article class="mc-comment" data-comment-id="${id}" style="--mc-depth:${depth}">
+        <article id="comment-${id}" class="mc-comment" data-comment-id="${id}" style="--mc-depth:${depth}">
           ${this.renderCommentHeader(comment)}
           ${this.renderReplyQuote(comment)}
           <div class="mc-content">${comment.contentHtml}</div>
@@ -296,6 +315,7 @@
         <header class="mc-comment-header">
           <span class="mc-avatar" aria-hidden="true">${initial}</span>
           <span class="mc-author">${this.escape(comment.author.name || 'Guest')}</span>
+          <a class="mc-permalink" href="#comment-${Number(comment.id)}" title="Permalink to comment #${Number(comment.id)}">#${Number(comment.id)}</a>
           <time>${this.escape(comment.created)}</time>
           ${comment.edited ? '<span class="mc-edited">edited</span>' : ''}
         </header>
