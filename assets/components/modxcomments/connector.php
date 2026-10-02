@@ -35,6 +35,7 @@ $allowed = array(
     'web/comment/create' => 'POST',
     'web/comment/update' => 'POST',
     'web/comment/delete' => 'POST',
+    'web/comment/vote' => 'POST',
 );
 
 if (!isset($allowed[$action])) {
