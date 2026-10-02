@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta3
+# ModxComments 0.2.0-beta4
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -50,7 +50,7 @@ Uninstall intentionally does **not** drop comment data.
 
 ## Updating from 0.2.0-beta
 
-Build/install `0.2.0-beta3` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-beta4` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
 
 ```text
 namespace = modxcomments
@@ -100,4 +100,4 @@ ModxCommentsOnCommentUpdate
 ModxCommentsOnCommentDelete
 ```
 
-Frontend styling is still intentionally minimal; visual polish is a separate milestone.
+Frontend and manager UI received the first full visual/interaction pass in beta4.
