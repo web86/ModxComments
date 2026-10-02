@@ -59,3 +59,13 @@ $_lang['setting_modxcomments.turnstile_secret_key_desc']='Private Cloudflare Tur
 
 $_lang['setting_modxcomments.turnstile_guests_only']='Turnstile for guests only';
 $_lang['setting_modxcomments.turnstile_guests_only_desc']='If enabled, Turnstile is required only for guests. Authenticated MODX web users can submit without CAPTCHA.';
+
+
+$_lang['setting_modxcomments.notify_admin']='Notify administrator';
+$_lang['setting_modxcomments.notify_admin_desc']='If enabled, send an email notification for every newly submitted comment, including comments that are pending moderation. Uses the standard MODX mail/SMTP configuration.';
+
+$_lang['setting_modxcomments.notify_admin_email']='Administrator notification email';
+$_lang['setting_modxcomments.notify_admin_email_desc']='Email address that receives new-comment notifications. If empty, the MODX system setting "emailsender" is used.';
+
+$_lang['setting_modxcomments.notify_replies']='Notify authors about replies';
+$_lang['setting_modxcomments.notify_replies_desc']='If enabled, email the author of the parent comment when a reply becomes published. Pending replies are not emailed until a moderator publishes them.';
