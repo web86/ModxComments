@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta
+# ModxComments 0.2.0-beta2
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -44,7 +44,20 @@ php _build/build.transport.php
 
 The generated package is written to MODX's `core/packages/` directory.
 
-The installer creates namespace, snippet, system settings, manager action/menu, custom events, and the comment table if missing. Uninstall intentionally does **not** drop comment data.
+The installer creates the namespace, snippet, system settings, manager menu, custom events, and the comment table if missing. The manager page uses MODX 2.3+ namespace routing and does not create deprecated `modAction` records.
+
+Uninstall intentionally does **not** drop comment data.
+
+## Updating from 0.2.0-beta
+
+Build/install `0.2.0-beta2` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+
+```text
+namespace = modxcomments
+action    = index
+```
+
+No database migration is required for comments.
 
 ## Settings
 
