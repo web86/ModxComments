@@ -1,1 +1,66 @@
-#modxcomments-grid-comments .x-grid3-cell-inner { white-space: normal; }
+#modxcomments-grid-comments .x-grid3-cell-inner {
+    white-space: normal;
+    line-height: 1.45;
+}
+
+#modxcomments-grid-comments .x-grid3-row {
+    border-bottom: 1px solid #eef0f2;
+}
+
+#modxcomments-grid-comments .x-grid3-row:hover {
+    background: #f7f9fb;
+}
+
+.mc-mgr-heading p {
+    margin: 6px 0 0;
+    color: #777;
+    font-size: 13px;
+}
+
+.mc-mgr-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.4;
+    background: #eef1f4;
+    color: #4b5563;
+}
+
+.mc-mgr-status-published {
+    background: #e9f7ef;
+    color: #237a46;
+}
+
+.mc-mgr-status-pending {
+    background: #fff6dc;
+    color: #8a6413;
+}
+
+.mc-mgr-status-spam {
+    background: #fdeaea;
+    color: #a63a32;
+}
+
+.mc-mgr-status-deleted {
+    background: #eceff2;
+    color: #747b84;
+}
+
+.mc-mgr-email {
+    color: #3697cd;
+    text-decoration: none;
+}
+
+.mc-mgr-email:hover {
+    text-decoration: underline;
+}
+
+.mc-mgr-muted {
+    color: #a0a5ab;
+}
+
+#modxcomments-grid-comments .x-toolbar {
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
