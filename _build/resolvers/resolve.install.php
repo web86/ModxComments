@@ -43,6 +43,9 @@ $settings=array(
  'turnstile_site_key'=>array('','textfield'),
  'turnstile_secret_key'=>array('','text-password'),
  'turnstile_guests_only'=>array('1','combo-boolean'),
+ 'notify_admin'=>array('0','combo-boolean'),
+ 'notify_admin_email'=>array('','textfield'),
+ 'notify_replies'=>array('0','combo-boolean'),
 );
 
 foreach($settings as $key=>$spec){
@@ -95,6 +98,13 @@ if($modx->addPackage('modxcomments',$modelPath)){
         }catch(Exception $e){
             $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] utf8mb4 migration failed for '.$tableName.': '.$e->getMessage());
         }
+    }
+
+    $commentsTable=preg_replace('/[^a-zA-Z0-9_]/','',$prefix.'modxcomments_comments');
+    try{
+        $modx->exec('ALTER TABLE '.$commentsTable.' ADD COLUMN reply_notifiedon DATETIME NULL DEFAULT NULL AFTER deletedon');
+    }catch(Exception $e){
+        // Expected on repeat upgrades when the column already exists.
     }
 }
 
