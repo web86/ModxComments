@@ -11,13 +11,17 @@ ModxComments.grid.Comments=function(config){
         id:'modxcomments-grid-comments',
         url:ModxComments.config.connectorUrl,
         baseParams:{action:'mgr/comment/getlist'},
-        fields:['id','resource_id','resource_title','author_name','content','status','createdon'],
+        fields:[
+            'id','resource_id','resource_title','author_name','author_email',
+            'content','status','createdon'
+        ],
         paging:true,
         remoteSort:true,
         columns:[
             {header:'ID',dataIndex:'id',width:55},
             {header:_('modxcomments.resource'),dataIndex:'resource_title',width:180},
             {header:_('modxcomments.author'),dataIndex:'author_name',width:130},
+            {header:_('modxcomments.email'),dataIndex:'author_email',width:190},
             {header:_('modxcomments.comment'),dataIndex:'content',width:360},
             {header:_('modxcomments.status'),dataIndex:'status',width:100},
             {header:_('modxcomments.createdon'),dataIndex:'createdon',width:130}
@@ -25,12 +29,15 @@ ModxComments.grid.Comments=function(config){
         tbar:[
             {
                 xtype:'textfield',
-                emptyText:_('search'),
+                width:220,
+                emptyText:_('modxcomments.search'),
                 listeners:{change:{fn:this.search,scope:this,buffer:400}}
             },
+            '-',
             {text:_('modxcomments.all'),handler:function(){this.filterStatus('');},scope:this},
             {text:_('modxcomments.published'),handler:function(){this.filterStatus('published');},scope:this},
-            {text:_('modxcomments.pending'),handler:function(){this.filterStatus('pending');},scope:this}
+            {text:_('modxcomments.pending'),handler:function(){this.filterStatus('pending');},scope:this},
+            {text:_('modxcomments.spam'),handler:function(){this.filterStatus('spam');},scope:this}
         ],
         listeners:{
             rowcontextmenu:function(grid,rowIndex,event){
@@ -59,8 +66,8 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
         new Ext.menu.Menu({
             items:[
                 {text:_('modxcomments.publish'),handler:function(){this.setStatus(record.id,'published');},scope:this},
-                {text:_('modxcomments.pending'),handler:function(){this.setStatus(record.id,'pending');},scope:this},
-                {text:_('modxcomments.spam'),handler:function(){this.setStatus(record.id,'spam');},scope:this},
+                {text:_('modxcomments.mark_pending'),handler:function(){this.setStatus(record.id,'pending');},scope:this},
+                {text:_('modxcomments.mark_spam'),handler:function(){this.setStatus(record.id,'spam');},scope:this},
                 '-',
                 {text:_('modxcomments.delete'),handler:function(){this.removeComment(record.id);},scope:this}
             ]
