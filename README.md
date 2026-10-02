@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta6
+# ModxComments 0.2.0-beta7
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -50,7 +50,7 @@ Uninstall intentionally does **not** drop comment data.
 
 ## Updating from 0.2.0-beta
 
-Build/install `0.2.0-beta6` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-beta7` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
 
 ```text
 namespace = modxcomments
@@ -149,3 +149,22 @@ The editor's link tool inserts:
 ```
 
 Only HTTP(S) links in this limited syntax are rendered as anchors. Arbitrary HTML remains escaped.
+
+
+## beta7 moderation preview and notifications
+
+When a newly submitted comment receives `pending`, the frontend temporarily keeps the returned comment in the current tab only. It is rendered semi-transparent with an “Awaiting moderation” notice. Reloading the page removes that local preview until a moderator publishes the comment.
+
+Email notifications are optional and disabled by default:
+
+```text
+modxcomments.notify_admin = 0
+modxcomments.notify_admin_email =
+modxcomments.notify_replies = 0
+```
+
+- `notify_admin=1`: send an email for every new comment, including pending comments.
+- `notify_admin_email`: recipient address; if blank, MODX `emailsender` is used.
+- `notify_replies=1`: notify the author of the parent comment when a reply is actually published. A pending reply triggers the notification only after moderation publishes it.
+
+Mail delivery uses the normal MODX mail/SMTP settings.
