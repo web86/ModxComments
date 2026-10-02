@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-beta4
+- Replace browser prompt/confirm flows with inline edit and delete states.
+- Add loading, busy, empty, success/error, reply and character-count states on the frontend.
+- Add a neutral responsive frontend skin based on CSS variables.
+- Improve manager grid readability with status badges, email links, clear search and status feedback.
+- Improve EN/RU manager copy and action discoverability.
+
 ## 0.2.0-beta3
 - Load manager lexicon through `getLanguageTopics()`, so ExtJS `_()` labels are populated.
 - Add Email column to the manager comments grid.
