@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0-beta10
+- Fix clean-install warning when the xPDO model directory is not yet available during the PHP resolver.
+- Create and migrate ModxComments tables directly in the installer resolver.
+- Keep xPDO model loading for normal runtime after package files are installed.
+
 ## 0.2.0-beta8
 - Fix transport package metadata so Instructions/Readme, License and Changelog can never become boolean false.
 - Add embedded fallback text when metadata files are missing or unreadable during build.
