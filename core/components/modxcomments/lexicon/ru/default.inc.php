@@ -69,3 +69,9 @@ $_lang['setting_modxcomments.notify_admin_email_desc']='Адрес, на кот�
 
 $_lang['setting_modxcomments.notify_replies']='Уведомлять авторов об ответах';
 $_lang['setting_modxcomments.notify_replies_desc']='Если включено, автор родительского комментария получает email, когда ответ становится опубликованным. Ответы pending не отправляются по почте до публикации модератором.';
+
+
+$_lang['modxcomments.admin']='Админ';
+$_lang['modxcomments.admin_reply']='Ответ администратора';
+$_lang['modxcomments.reply_to']='Ответ на';
+$_lang['modxcomments.thread_root']='Начало ветки';
