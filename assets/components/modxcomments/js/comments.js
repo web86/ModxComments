@@ -11,6 +11,7 @@
       this.user = { id: 0, authenticated: false, name: '' };
       this.settings = { allowGuests: true, maxDepth: 5, maxLength: 5000, captcha: { enabled: false } };
       this.comments = [];
+      this.localPending = [];
       this.parent = 0;
       this.editingId = 0;
       this.deletingId = 0;
@@ -221,10 +222,39 @@
     }
 
     renderComments(comments) {
-      this.comments = comments;
+      const serverComments = Array.isArray(comments) ? comments.slice() : [];
+      const serverIds = new Set(serverComments.map((item) => Number(item.id)));
+
+      this.localPending = this.localPending.filter((item) => !serverIds.has(Number(item.id)));
+
+      const merged = serverComments.slice();
+      this.localPending.forEach((pending) => {
+        const item = Object.assign({}, pending, { localPending: true });
+        const parentId = Number(item.parent || 0);
+
+        if (!parentId) {
+          merged.push(item);
+          return;
+        }
+
+        const parentIndex = merged.findIndex((entry) => Number(entry.id) === parentId);
+        if (parentIndex < 0) {
+          merged.push(item);
+          return;
+        }
+
+        const parentDepth = Number(merged[parentIndex].depth || 0);
+        let insertAt = parentIndex + 1;
+        while (insertAt < merged.length && Number(merged[insertAt].depth || 0) > parentDepth) {
+          insertAt++;
+        }
+        merged.splice(insertAt, 0, item);
+      });
+
+      this.comments = merged;
       const list = this.root.querySelector('[data-mc-list]');
 
-      if (!comments.length) {
+      if (!this.comments.length) {
         list.innerHTML = `
           <div class="mc-empty">
             <div class="mc-empty-title">No comments yet</div>
@@ -234,7 +264,7 @@
         return;
       }
 
-      list.innerHTML = comments.map((comment) => this.renderComment(comment)).join('');
+      list.innerHTML = this.comments.map((comment) => this.renderComment(comment)).join('');
     }
 
     renderComment(comment) {
@@ -268,7 +298,8 @@
         `;
       }
 
-      const actions = [
+      const isPendingPreview = Boolean(comment.localPending && comment.status === 'pending');
+      const actions = isPendingPreview ? '' : [
         comment.canReply ? this.actionButton('reply', id, 'Reply') : '',
         comment.canEdit ? this.actionButton('edit', id, 'Edit') : '',
         comment.canDelete ? this.actionButton('delete', id, 'Delete', 'is-danger') : ''
@@ -290,18 +321,22 @@
       const votes = comment.votes || { up: 0, down: 0, mine: 0 };
 
       return `
-        <article id="comment-${id}" class="mc-comment" data-comment-id="${id}" style="--mc-depth:${depth}">
+        <article id="comment-${id}" class="mc-comment ${isPendingPreview ? 'is-pending-preview' : ''}" data-comment-id="${id}" style="--mc-depth:${depth}">
           ${this.renderCommentHeader(comment)}
           ${this.renderReplyQuote(comment)}
           <div class="mc-content">${comment.contentHtml}</div>
 
-          <div class="mc-comment-footer">
-            <div class="mc-comment-actions">${actions}</div>
-            <div class="mc-votes" aria-label="Comment rating">
-              <button type="button" class="mc-vote ${Number(votes.mine) === 1 ? 'is-active' : ''}" data-mc-action="vote-up" data-id="${id}" title="Like">👍 <span>${Number(votes.up) || 0}</span></button>
-              <button type="button" class="mc-vote ${Number(votes.mine) === -1 ? 'is-active' : ''}" data-mc-action="vote-down" data-id="${id}" title="Dislike">👎 <span>${Number(votes.down) || 0}</span></button>
+          ${isPendingPreview ? `
+            <div class="mc-pending-note">Awaiting moderation · visible only in this tab until reload</div>
+          ` : `
+            <div class="mc-comment-footer">
+              <div class="mc-comment-actions">${actions}</div>
+              <div class="mc-votes" aria-label="Comment rating">
+                <button type="button" class="mc-vote ${Number(votes.mine) === 1 ? 'is-active' : ''}" data-mc-action="vote-up" data-id="${id}" title="Like">👍 <span>${Number(votes.up) || 0}</span></button>
+                <button type="button" class="mc-vote ${Number(votes.mine) === -1 ? 'is-active' : ''}" data-mc-action="vote-down" data-id="${id}" title="Dislike">👎 <span>${Number(votes.down) || 0}</span></button>
+              </div>
             </div>
-          </div>
+          `}
 
           ${deletePanel}
         </article>
@@ -317,6 +352,7 @@
           <span class="mc-author">${this.escape(comment.author.name || 'Guest')}</span>
           <a class="mc-permalink" href="#comment-${Number(comment.id)}" title="Permalink to comment #${Number(comment.id)}">#${Number(comment.id)}</a>
           <time>${this.escape(comment.created)}</time>
+          ${comment.localPending && comment.status === 'pending' ? '<span class="mc-pending-badge">Pending</span>' : ''}
           ${comment.edited ? '<span class="mc-edited">edited</span>' : ''}
         </header>
       `;
@@ -423,7 +459,7 @@
       this.showStatus('');
 
       try {
-        await this.request('web/comment/create', {
+        const created = await this.request('web/comment/create', {
           resource: this.resource,
           parent: this.parent,
           content: data.get('content') || '',
@@ -433,6 +469,10 @@
           captcha_token: this.captchaToken
         }, 'POST');
 
+        if (created.comment && created.comment.status === 'pending') {
+          this.localPending.push(Object.assign({}, created.comment, { localPending: true }));
+        }
+
         form.reset();
         const counter = form.querySelector('[data-mc-counter]');
         if (counter) counter.textContent = `0 / ${Number(this.settings.maxLength) || 5000}`;
@@ -440,7 +480,11 @@
         this.setReply(0);
         this.resetCaptcha();
         await this.reload();
-        this.showStatus('Comment submitted.');
+        this.showStatus(
+          created.comment && created.comment.status === 'pending'
+            ? 'Comment submitted and is awaiting moderation.'
+            : 'Comment submitted.'
+        );
         this.root.dispatchEvent(new CustomEvent('comments:created', { bubbles: true }));
       } catch (error) {
         this.resetCaptcha();
