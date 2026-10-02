@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-beta8
+- Fix transport package metadata so Instructions/Readme, License and Changelog can never become boolean false.
+- Add embedded fallback text when metadata files are missing or unreadable during build.
+- Structure the manager comments grid as visible reply threads.
+- Indent replies by nesting depth and show the parent author + excerpt.
+- Visually separate root comments from replies.
+- Detect administrator-authored comments using MODX sudo or Administrator group membership.
+- Highlight administrator replies with a badge and row styling.
+
 ## 0.2.0-beta7
 - Fill MODX transport-package Instructions/Readme, License and Changelog metadata.
 - Add a dedicated installation/upgrade instruction document.
