@@ -1,9 +1,12 @@
 .modx-comments { max-width: 760px; }
 .mc-comment { margin: 0 0 1rem; margin-left: calc(min(var(--mc-depth), 5) * 1.25rem); padding: .8rem 1rem; border-left: 2px solid #ddd; }
-.mc-comment header { margin-bottom: .5rem; }
-.mc-comment time { margin-left: .4rem; font-size: .85em; opacity: .65; }
+.mc-comment header { display: flex; align-items: baseline; gap: .45rem; margin-bottom: .5rem; }
+.mc-comment time, .mc-edited { font-size: .85em; opacity: .65; }
 .mc-content { overflow-wrap: anywhere; }
-.mc-reply { margin-top: .6rem; }
+.mc-comment-actions { display: flex; gap: .5rem; margin-top: .65rem; }
+.mc-comment-actions button { cursor: pointer; }
+.mc-comment.is-deleted { opacity: .6; }
+.mc-deleted { font-style: italic; }
 .mc-form { display: grid; gap: .6rem; margin-top: 1.5rem; }
 .mc-form input, .mc-form textarea { box-sizing: border-box; width: 100%; padding: .65rem .75rem; font: inherit; }
 .mc-actions { display: flex; gap: .5rem; }
@@ -11,3 +14,4 @@
 .mc-status { min-height: 1.4em; margin-top: .75rem; }
 .mc-status.is-error { font-weight: 600; }
 .mc-empty { opacity: .7; }
+.mc-captcha:empty { display: none; }
