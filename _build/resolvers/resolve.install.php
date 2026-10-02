@@ -5,10 +5,16 @@ $modx=$object->xpdo;
 $action=isset($options[xPDOTransport::PACKAGE_ACTION])?$options[xPDOTransport::PACKAGE_ACTION]:xPDOTransport::ACTION_INSTALL;
 
 if($action===xPDOTransport::ACTION_UNINSTALL){
-    $menu=$modx->getObject('modMenu','modxcomments'); if($menu) $menu->remove();
-    $managerAction=$modx->getObject('modAction',array('namespace'=>'modxcomments','controller'=>'index')); if($managerAction) $managerAction->remove();
-    foreach($modx->getCollection('modSystemSetting',array('namespace'=>'modxcomments')) as $setting) $setting->remove();
-    $namespace=$modx->getObject('modNamespace','modxcomments'); if($namespace) $namespace->remove();
+    $menu=$modx->getObject('modMenu','modxcomments');
+    if($menu) $menu->remove();
+
+    foreach($modx->getCollection('modSystemSetting',array('namespace'=>'modxcomments')) as $setting){
+        $setting->remove();
+    }
+
+    $namespace=$modx->getObject('modNamespace','modxcomments');
+    if($namespace) $namespace->remove();
+
     return true;
 }
 
@@ -53,15 +59,15 @@ foreach($settings as $key=>$spec){
     $setting->save();
 }
 
-$managerAction=$modx->getObject('modAction',array('namespace'=>'modxcomments','controller'=>'index'));
-if(!$managerAction) $managerAction=$modx->newObject('modAction');
-$managerAction->fromArray(array(
-    'namespace'=>'modxcomments',
-    'controller'=>'index',
-    'haslayout'=>1,
-    'lang_topics'=>'modxcomments:default',
-),'',true,true);
-$managerAction->save();
+/*
+ * MODX 2.3+ manager routing: menu action is the controller/action name,
+ * resolved through namespace. Do not create/use deprecated modAction records.
+ * Also repair installs made by the previous beta.
+ */
+$legacyActions=$modx->getCollection('modAction',array('namespace'=>'modxcomments'));
+foreach($legacyActions as $legacyAction){
+    $legacyAction->remove();
+}
 
 $menu=$modx->getObject('modMenu','modxcomments');
 if(!$menu){
@@ -72,7 +78,7 @@ $menu->fromArray(array(
     'description'=>'modxcomments',
     'parent'=>'components',
     'menuindex'=>0,
-    'action'=>(int)$managerAction->get('id'),
+    'action'=>'index',
     'namespace'=>'modxcomments',
     'params'=>'',
     'handler'=>'',
@@ -96,6 +102,7 @@ foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxC
 $modx->getCacheManager()->refresh(array(
     'system_settings'=>array(),
     'context_settings'=>array(),
+    'menu'=>array(),
     'resource'=>array(),
 ));
 
