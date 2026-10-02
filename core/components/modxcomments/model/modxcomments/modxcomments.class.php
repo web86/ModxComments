@@ -55,6 +55,7 @@ class ModxComments
             'maxDepth' => (int) $this->config['maxDepth'],
             'maxLength' => (int) $this->config['maxLength'],
             'editTime' => (int) $this->config['editTime'],
+            'guestEmailRequired' => true,
             'captcha' => array(
                 'enabled' => $this->shouldUseTurnstile($user),
                 'provider' => 'turnstile',
@@ -143,6 +144,7 @@ class ModxComments
 
         $this->assertResource($resourceId, $contextKey);
         $this->assertCanCreate();
+        $this->assertHoneypot($data);
         $this->assertContent($content);
         $this->assertRateLimit();
 
@@ -166,7 +168,8 @@ class ModxComments
 
             if ($authorName === '') throw new InvalidArgumentException('author_name_required');
             if ($this->stringLength($authorName) > 190) throw new InvalidArgumentException('author_name_too_long');
-            if ($authorEmail !== '' && !filter_var($authorEmail, FILTER_VALIDATE_EMAIL)) {
+            if ($authorEmail === '') throw new InvalidArgumentException('author_email_required');
+            if (!filter_var($authorEmail, FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidArgumentException('author_email_invalid');
             }
         }
@@ -278,6 +281,55 @@ class ModxComments
         return $this->serializeComment($comment);
     }
 
+    public function voteComment($id, $value)
+    {
+        $id = (int) $id;
+        $value = (int) $value;
+
+        if ($id < 1) throw new InvalidArgumentException('comment_required');
+        if (!in_array($value, array(-1, 1), true)) throw new InvalidArgumentException('vote_invalid');
+
+        $comment = $this->modx->getObject('ModxCommentsComment', $id);
+        if (!$comment || $comment->get('status') !== 'published') {
+            throw new InvalidArgumentException('comment_not_found');
+        }
+
+        $voterHash = $this->getVoterHash();
+        $vote = $this->modx->getObject('ModxCommentsVote', array(
+            'comment_id' => $id,
+            'voter_hash' => $voterHash,
+        ));
+
+        $myVote = 0;
+
+        if ($vote) {
+            if ((int) $vote->get('value') === $value) {
+                $vote->remove();
+            } else {
+                $vote->set('value', $value);
+                if (!$vote->save()) throw new RuntimeException('vote_save_failed');
+                $myVote = $value;
+            }
+        } else {
+            $vote = $this->modx->newObject('ModxCommentsVote');
+            $vote->fromArray(array(
+                'comment_id' => $id,
+                'voter_hash' => $voterHash,
+                'value' => $value,
+                'createdon' => date('Y-m-d H:i:s'),
+            ), '', true, true);
+
+            if (!$vote->save()) throw new RuntimeException('vote_save_failed');
+            $myVote = $value;
+        }
+
+        return array(
+            'commentId' => $id,
+            'votes' => $this->getVoteSummary($id, $voterHash),
+            'myVote' => $myVote,
+        );
+    }
+
     public function cleanContextKey($contextKey)
     {
         $contextKey = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $contextKey);
@@ -337,6 +389,14 @@ class ModxComments
         }
     }
 
+    protected function assertHoneypot(array $data)
+    {
+        $value = isset($data['website']) ? trim((string) $data['website']) : '';
+        if ($value !== '') {
+            throw new RuntimeException('spam_detected');
+        }
+    }
+
     protected function assertResource($resourceId, $contextKey)
     {
         if ($resourceId < 1) throw new InvalidArgumentException('resource_required');
@@ -382,6 +442,65 @@ class ModxComments
         }
     }
 
+    protected function getVoterHash()
+    {
+        $user = $this->getCurrentUser();
+        if ($user['authenticated']) {
+            return hash('sha256', 'user|' . (int) $user['id'] . '|' . $this->hashClientValue('vote'));
+        }
+
+        $cookieName = 'modxcomments_voter';
+        $token = isset($_COOKIE[$cookieName]) ? preg_replace('/[^a-f0-9]/i', '', (string) $_COOKIE[$cookieName]) : '';
+
+        if (strlen($token) < 32) {
+            try {
+                $token = bin2hex(random_bytes(24));
+            } catch (Exception $e) {
+                $token = hash('sha256', uniqid('', true) . mt_rand());
+            }
+
+            setcookie(
+                $cookieName,
+                $token,
+                time() + 31536000,
+                '/',
+                '',
+                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                true
+            );
+            $_COOKIE[$cookieName] = $token;
+        }
+
+        return hash('sha256', 'guest|' . $token . '|' . $this->hashClientValue('vote'));
+    }
+
+    protected function getVoteSummary($commentId, $voterHash = null)
+    {
+        $commentId = (int) $commentId;
+        if ($voterHash === null) $voterHash = $this->getVoterHash();
+
+        $up = (int) $this->modx->getCount('ModxCommentsVote', array(
+            'comment_id' => $commentId,
+            'value' => 1,
+        ));
+        $down = (int) $this->modx->getCount('ModxCommentsVote', array(
+            'comment_id' => $commentId,
+            'value' => -1,
+        ));
+
+        $mine = $this->modx->getObject('ModxCommentsVote', array(
+            'comment_id' => $commentId,
+            'voter_hash' => $voterHash,
+        ));
+
+        return array(
+            'up' => $up,
+            'down' => $down,
+            'score' => $up - $down,
+            'mine' => $mine ? (int) $mine->get('value') : 0,
+        );
+    }
+
     protected function hashClientValue($value)
     {
         $salt = isset($this->modx->siteId)
@@ -417,10 +536,29 @@ class ModxComments
         $user = $this->getCurrentUser();
         $owned = $user['authenticated'] && (int) $comment->get('user_id') === (int) $user['id'];
         $editable = !$deleted && $owned && $this->isWithinEditWindow($comment);
+        $replyTo = null;
+
+        $parentId = (int) $comment->get('parent_id');
+        if ($parentId > 0) {
+            $parent = $this->modx->getObject('ModxCommentsComment', $parentId);
+            if ($parent) {
+                $parentText = trim(preg_replace('/\s+/u', ' ', (string) $parent->get('content')));
+                if ($this->stringLength($parentText) > 180) {
+                    $parentText = $this->stringSlice($parentText, 0, 177) . '…';
+                }
+
+                $replyTo = array(
+                    'id' => (int) $parent->get('id'),
+                    'author' => $parent->get('status') === 'deleted' ? '' : (string) $parent->get('author_name'),
+                    'excerpt' => $parent->get('status') === 'deleted' ? '' : $parentText,
+                    'deleted' => $parent->get('status') === 'deleted',
+                );
+            }
+        }
 
         return array(
             'id' => (int) $comment->get('id'),
-            'parent' => (int) $comment->get('parent_id'),
+            'parent' => $parentId,
             'thread' => (int) $comment->get('thread_id'),
             'depth' => (int) $comment->get('depth'),
             'status' => (string) $comment->get('status'),
@@ -431,6 +569,8 @@ class ModxComments
             ),
             'content' => $deleted ? '' : (string) $comment->get('content'),
             'contentHtml' => $deleted ? '' : (string) $comment->get('content_html'),
+            'replyTo' => $replyTo,
+            'votes' => $deleted ? array('up' => 0, 'down' => 0, 'score' => 0, 'mine' => 0) : $this->getVoteSummary((int) $comment->get('id')),
             'created' => (string) $comment->get('createdon'),
             'edited' => (bool) $comment->get('editedon'),
             'canReply' => !$deleted && ((int) $comment->get('depth') < (int) $this->config['maxDepth']),
@@ -442,5 +582,12 @@ class ModxComments
     protected function stringLength($value)
     {
         return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+    }
+
+    protected function stringSlice($value, $start, $length)
+    {
+        return function_exists('mb_substr')
+            ? mb_substr($value, $start, $length, 'UTF-8')
+            : substr($value, $start, $length);
     }
 }
