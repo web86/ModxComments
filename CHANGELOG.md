@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0-beta12
+- Fix the transport file-resolver targets for clean installs.
+- Core source now resolves into `MODX_CORE_PATH/components/`, avoiding an accidental nested `modxcomments/modxcomments/` directory.
+- Assets source now resolves into `MODX_ASSETS_PATH/components/` for the same reason.
+- Add installer diagnostics for missing controller/model/frontend paths after extraction.
+
 ## 0.2.0-beta11
 - Add a manager controller under controllers/default/index.class.php, which MODX 2.8 checks before controllers/index.class.php.
 - Add a legacy index.php compatibility fallback for installations that unexpectedly use modManagerControllerDeprecated.
