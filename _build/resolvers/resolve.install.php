@@ -84,6 +84,18 @@ if($modx->addPackage('modxcomments',$modelPath)){
     $manager=$modx->getManager();
     $manager->createObjectContainer('ModxCommentsComment');
     $manager->createObjectContainer('ModxCommentsVote');
+
+    // Existing MODX installations often use MySQL "utf8" (3-byte).
+    // Convert only our tables so 4-byte emoji are preserved.
+    $prefix=$modx->getOption(xPDO::OPT_TABLE_PREFIX,null,'');
+    foreach(array('modxcomments_comments','modxcomments_votes') as $table){
+        $tableName=preg_replace('/[^a-zA-Z0-9_]/','',$prefix.$table);
+        try{
+            $modx->exec('ALTER TABLE '.$tableName.' CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+        }catch(Exception $e){
+            $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] utf8mb4 migration failed for '.$tableName.': '.$e->getMessage());
+        }
+    }
 }
 
 foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxCommentsOnCommentDelete') as $eventName){
@@ -98,6 +110,7 @@ foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxC
 $modx->getCacheManager()->refresh(array(
     'system_settings'=>array(),
     'context_settings'=>array(),
+    'lexicon_topics'=>array(),
     'menu'=>array(),
     'resource'=>array(),
 ));
