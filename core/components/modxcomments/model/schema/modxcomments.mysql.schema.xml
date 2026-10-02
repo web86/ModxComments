@@ -43,5 +43,24 @@
         <aggregate alias="Resource" class="modResource" local="resource_id" foreign="id" cardinality="one" owner="foreign" />
         <aggregate alias="User" class="modUser" local="user_id" foreign="id" cardinality="one" owner="foreign" />
         <aggregate alias="Parent" class="ModxCommentsComment" local="parent_id" foreign="id" cardinality="one" owner="foreign" />
+        <composite alias="Votes" class="ModxCommentsVote" local="id" foreign="comment_id" cardinality="many" owner="local" />
+    </object>
+
+    <object class="ModxCommentsVote" table="modxcomments_votes" extends="xPDOSimpleObject">
+        <field key="comment_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <field key="voter_hash" dbtype="char" precision="64" phptype="string" null="false" default="" />
+        <field key="value" dbtype="tinyint" precision="2" phptype="integer" null="false" default="1" />
+        <field key="createdon" dbtype="datetime" phptype="datetime" null="false" />
+
+        <index alias="comment_voter" name="comment_voter" primary="false" unique="true" type="BTREE">
+            <column key="comment_id" collation="A" null="false" />
+            <column key="voter_hash" collation="A" null="false" />
+        </index>
+        <index alias="comment_value" name="comment_value" primary="false" unique="false" type="BTREE">
+            <column key="comment_id" collation="A" null="false" />
+            <column key="value" collation="A" null="false" />
+        </index>
+
+        <aggregate alias="Comment" class="ModxCommentsComment" local="comment_id" foreign="id" cardinality="one" owner="foreign" />
     </object>
 </model>
