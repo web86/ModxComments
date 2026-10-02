@@ -1,10 +1,4 @@
 <?php
-/**
- * Public, same-origin JSON endpoint for ModxComments.
- * It intentionally does not include MODX_CONNECTORS_PATH/index.php because that
- * endpoint is manager-oriented and expects MODAUTH. We initialize the web
- * context and apply our own action allow-list + CSRF checks for writes.
- */
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
@@ -17,17 +11,14 @@ require_once MODX_CORE_PATH . 'model/modx/modx.class.php';
 $input = $_REQUEST;
 $contentType = isset($_SERVER['CONTENT_TYPE']) ? strtolower((string) $_SERVER['CONTENT_TYPE']) : '';
 if (strpos($contentType, 'application/json') !== false) {
-    $raw = file_get_contents('php://input');
-    $json = json_decode($raw, true);
+    $json = json_decode(file_get_contents('php://input'), true);
     if (is_array($json)) {
         $input = array_merge($input, $json);
     }
 }
 
 $context = isset($input['context']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $input['context']) : 'web';
-if ($context === '') {
-    $context = 'web';
-}
+if ($context === '') $context = 'web';
 
 $modx = new modX();
 $modx->initialize($context);
@@ -42,6 +33,8 @@ $allowed = array(
     'web/init' => 'GET',
     'web/comment/getlist' => 'GET',
     'web/comment/create' => 'POST',
+    'web/comment/update' => 'POST',
+    'web/comment/delete' => 'POST',
 );
 
 if (!isset($allowed[$action])) {
@@ -58,14 +51,11 @@ if ($method !== $allowed[$action]) {
     exit;
 }
 
-// Session- or user-dependent responses must not enter shared/proxy caches.
 header('Cache-Control: no-store, private, max-age=0');
 header('Pragma: no-cache');
 
 $corePath = $modx->getOption('modxcomments.core_path', null, MODX_CORE_PATH . 'components/modxcomments/');
-$response = $modx->runProcessor($action, $input, array(
-    'processors_path' => $corePath . 'processors/',
-));
+$response = $modx->runProcessor($action, $input, array('processors_path' => $corePath . 'processors/'));
 
 if (!$response) {
     http_response_code(500);
@@ -74,8 +64,6 @@ if (!$response) {
 }
 
 $payload = $response->getResponse();
-if (empty($payload['success'])) {
-    http_response_code(400);
-}
+if (empty($payload['success'])) http_response_code(400);
 
 echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
