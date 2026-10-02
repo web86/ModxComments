@@ -64,3 +64,69 @@
     padding-top: 7px;
     padding-bottom: 7px;
 }
+
+
+/* beta8: threaded manager view + administrator replies */
+.mc-mgr-thread-cell {
+    position: relative;
+}
+
+.mc-mgr-row-reply .mc-mgr-thread-cell:before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    background: #dfe5eb;
+}
+
+.mc-mgr-reply-meta,
+.mc-mgr-root-meta {
+    margin-bottom: 4px;
+    color: #8a929b;
+    font-size: 11px;
+}
+
+.mc-mgr-reply-meta span {
+    margin-left: 5px;
+    color: #a0a6ad;
+}
+
+.mc-mgr-comment-text {
+    color: #30363c;
+}
+
+.mc-mgr-row-root .mc-mgr-comment-text {
+    font-weight: 600;
+}
+
+.mc-mgr-admin-badge {
+    display: inline-block;
+    margin-right: 4px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #e8f1ff;
+    color: #2766b5;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+#modxcomments-grid-comments .x-grid3-row.mc-mgr-row-admin {
+    background: #f3f8ff;
+    box-shadow: inset 3px 0 0 #5b8fd8;
+}
+
+#modxcomments-grid-comments .x-grid3-row.mc-mgr-row-admin:hover {
+    background: #eaf3ff;
+}
+
+#modxcomments-grid-comments .x-grid3-row.mc-mgr-row-root {
+    border-top: 2px solid #dfe5eb;
+}
+
+#modxcomments-grid-comments .x-grid3-row.mc-mgr-row-reply {
+    border-top: 0;
+}
