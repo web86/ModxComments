@@ -1,0 +1,13 @@
+.modx-comments { max-width: 760px; }
+.mc-comment { margin: 0 0 1rem; margin-left: calc(min(var(--mc-depth), 5) * 1.25rem); padding: .8rem 1rem; border-left: 2px solid #ddd; }
+.mc-comment header { margin-bottom: .5rem; }
+.mc-comment time { margin-left: .4rem; font-size: .85em; opacity: .65; }
+.mc-content { overflow-wrap: anywhere; }
+.mc-reply { margin-top: .6rem; }
+.mc-form { display: grid; gap: .6rem; margin-top: 1.5rem; }
+.mc-form input, .mc-form textarea { box-sizing: border-box; width: 100%; padding: .65rem .75rem; font: inherit; }
+.mc-actions { display: flex; gap: .5rem; }
+.mc-replying { font-size: .9em; opacity: .75; }
+.mc-status { min-height: 1.4em; margin-top: .75rem; }
+.mc-status.is-error { font-weight: 600; }
+.mc-empty { opacity: .7; }
