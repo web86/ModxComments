@@ -83,29 +83,80 @@ $menu->fromArray(array(
 ),'',true,true);
 $menu->save();
 
-if($modx->addPackage('modxcomments',$modelPath)){
-    $manager=$modx->getManager();
-    $manager->createObjectContainer('ModxCommentsComment');
-    $manager->createObjectContainer('ModxCommentsVote');
+$prefix=preg_replace('/[^a-zA-Z0-9_]/','',$modx->getOption(xPDO::OPT_TABLE_PREFIX,null,''));
+$commentsTable=$prefix.'modxcomments_comments';
+$votesTable=$prefix.'modxcomments_votes';
 
-    // Existing MODX installations often use MySQL "utf8" (3-byte).
-    // Convert only our tables so 4-byte emoji are preserved.
-    $prefix=$modx->getOption(xPDO::OPT_TABLE_PREFIX,null,'');
-    foreach(array('modxcomments_comments','modxcomments_votes') as $table){
-        $tableName=preg_replace('/[^a-zA-Z0-9_]/','',$prefix.$table);
-        try{
-            $modx->exec('ALTER TABLE '.$tableName.' CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
-        }catch(Exception $e){
-            $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] utf8mb4 migration failed for '.$tableName.': '.$e->getMessage());
-        }
-    }
+/*
+ * Do not call addPackage() here. On a clean MODX install this PHP resolver can
+ * run before the file resolver has made core/components/modxcomments/model/
+ * available. Create/migrate the component tables directly; the generated xPDO
+ * model files are available later during normal runtime.
+ */
+try{
+    $modx->exec(
+        'CREATE TABLE IF NOT EXISTS '.$commentsTable.' ('
+        .'id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,'
+        .'resource_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'context_key VARCHAR(100) NOT NULL DEFAULT "web",'
+        .'parent_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'thread_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'depth TINYINT(3) UNSIGNED NOT NULL DEFAULT 0,'
+        .'path VARCHAR(255) NOT NULL DEFAULT "",'
+        .'user_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'author_name VARCHAR(190) NOT NULL DEFAULT "",'
+        .'author_email VARCHAR(254) NOT NULL DEFAULT "",'
+        .'content TEXT NOT NULL,'
+        .'content_html TEXT NOT NULL,'
+        .'content_hash CHAR(64) NOT NULL DEFAULT "",'
+        .'status VARCHAR(32) NOT NULL DEFAULT "published",'
+        .'createdon DATETIME NOT NULL,'
+        .'editedon DATETIME NULL DEFAULT NULL,'
+        .'deletedon DATETIME NULL DEFAULT NULL,'
+        .'reply_notifiedon DATETIME NULL DEFAULT NULL,'
+        .'ip_hash CHAR(64) NOT NULL DEFAULT "",'
+        .'user_agent_hash CHAR(64) NOT NULL DEFAULT "",'
+        .'PRIMARY KEY (id),'
+        .'KEY resource_context_status (resource_id,context_key,status),'
+        .'KEY parent_id (parent_id),'
+        .'KEY thread_path (thread_id,path),'
+        .'KEY user_id (user_id),'
+        .'KEY ip_created (ip_hash,createdon)'
+        .') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
 
-    $commentsTable=preg_replace('/[^a-zA-Z0-9_]/','',$prefix.'modxcomments_comments');
+    $modx->exec(
+        'CREATE TABLE IF NOT EXISTS '.$votesTable.' ('
+        .'id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,'
+        .'comment_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'voter_hash CHAR(64) NOT NULL DEFAULT "",'
+        .'value TINYINT(2) NOT NULL DEFAULT 1,'
+        .'createdon DATETIME NOT NULL,'
+        .'PRIMARY KEY (id),'
+        .'UNIQUE KEY comment_voter (comment_id,voter_hash),'
+        .'KEY comment_value (comment_id,value)'
+        .') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+}catch(Exception $e){
+    $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] Could not create component tables: '.$e->getMessage());
+}
+
+foreach(array($commentsTable,$votesTable) as $tableName){
     try{
-        $modx->exec('ALTER TABLE '.$commentsTable.' ADD COLUMN reply_notifiedon DATETIME NULL DEFAULT NULL AFTER deletedon');
+        $modx->exec('ALTER TABLE '.$tableName.' CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     }catch(Exception $e){
-        // Expected on repeat upgrades when the column already exists.
+        $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] utf8mb4 migration failed for '.$tableName.': '.$e->getMessage());
     }
+}
+
+try{
+    $statement=$modx->query('SHOW COLUMNS FROM '.$commentsTable.' LIKE "reply_notifiedon"');
+    $hasReplyNotified=$statement && $statement->fetch(PDO::FETCH_ASSOC);
+    if(!$hasReplyNotified){
+        $modx->exec('ALTER TABLE '.$commentsTable.' ADD COLUMN reply_notifiedon DATETIME NULL DEFAULT NULL AFTER deletedon');
+    }
+}catch(Exception $e){
+    $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] reply_notifiedon migration failed: '.$e->getMessage());
 }
 
 foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxCommentsOnCommentDelete') as $eventName){
