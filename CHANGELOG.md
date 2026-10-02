@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-beta3
+- Load manager lexicon through `getLanguageTopics()`, so ExtJS `_()` labels are populated.
+- Add Email column to the manager comments grid.
+- Add explicit English and Russian labels for toolbar filters and row actions.
+- Explicitly strip PHP opening/closing tags from snippet source during transport build.
+- Keep the beta2 routing/category fixes.
+
 ## 0.2.0-beta2
 - Fix transport category key: `modCategory.category` instead of invalid `category_name`.
 - Replace deprecated manager `modAction` routing with namespace + action-name routing.
