@@ -23,7 +23,7 @@ if(!$generator->parseSchema($schema,$modelPath)){
 }
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta6');
+$builder->createPackage('modxcomments','0.2.0','beta7');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -69,10 +69,10 @@ $vehicle->resolve('php',array(
 
 $builder->putVehicle($vehicle);
 $builder->setPackageAttributes(array(
-    'license'=>file_exists($root.'/LICENSE')?file_get_contents($root.'/LICENSE'):'',
-    'readme'=>file_get_contents($root.'/README.md'),
-    'changelog'=>file_exists($root.'/CHANGELOG.md')?file_get_contents($root.'/CHANGELOG.md'):'',
+    'license'=>file_get_contents($root.'/LICENSE'),
+    'readme'=>file_get_contents($root.'/docs/INSTALL.md'),
+    'changelog'=>file_get_contents($root.'/CHANGELOG.md'),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta6 transport package.\n";
+echo "Built ModxComments 0.2.0-beta7 transport package.\n";
