@@ -23,7 +23,7 @@ if(!$generator->parseSchema($schema,$modelPath)){
 }
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta5');
+$builder->createPackage('modxcomments','0.2.0','beta6');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -75,4 +75,4 @@ $builder->setPackageAttributes(array(
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta5 transport package.\n";
+echo "Built ModxComments 0.2.0-beta6 transport package.\n";
