@@ -35,7 +35,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta11');
+$builder->createPackage('modxcomments','0.2.0','beta12');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -68,12 +68,12 @@ $vehicle=$builder->createVehicle($category,array(
 ));
 
 $vehicle->resolve('file',array(
-    'source'=>$root.'/core/components/modxcomments/',
-    'target'=>"return MODX_CORE_PATH . 'components/modxcomments/';",
+    'source'=>$root.'/core/components/modxcomments',
+    'target'=>"return MODX_CORE_PATH . 'components/';",
 ));
 $vehicle->resolve('file',array(
-    'source'=>$root.'/assets/components/modxcomments/',
-    'target'=>"return MODX_ASSETS_PATH . 'components/modxcomments/';",
+    'source'=>$root.'/assets/components/modxcomments',
+    'target'=>"return MODX_ASSETS_PATH . 'components/';",
 ));
 $vehicle->resolve('php',array(
     'source'=>$root.'/_build/resolvers/resolve.install.php',
@@ -91,9 +91,9 @@ $builder->setPackageAttributes(array(
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-beta11\n- Hotfix for transport metadata fallback during package build.\n"
+        "ModxComments 0.2.0-beta12\n- Hotfix for transport metadata fallback during package build.\n"
     ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta11 transport package.\n";
+echo "Built ModxComments 0.2.0-beta12 transport package.\n";
