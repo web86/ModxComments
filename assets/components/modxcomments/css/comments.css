@@ -492,3 +492,39 @@
     flex-direction: column;
   }
 }
+
+
+/* beta6: permalinks and labeled-link editor */
+.mc-permalink {
+  color: var(--mc-muted);
+  font-size: .82em;
+  text-decoration: none;
+}
+.mc-permalink:hover {
+  color: var(--mc-accent);
+  text-decoration: underline;
+}
+
+.mc-comment:target {
+  border-color: var(--mc-accent);
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, .12), var(--mc-shadow);
+}
+
+.mc-link-panel label {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 180px;
+}
+.mc-link-panel label > span {
+  color: var(--mc-muted);
+  font-size: .78em;
+}
+.mc-link-panel .mc-btn {
+  align-self: end;
+}
+
+@media (max-width: 640px) {
+  .mc-link-panel .mc-btn {
+    align-self: stretch;
+  }
+}
