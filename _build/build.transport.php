@@ -11,12 +11,28 @@ $modx->initialize('mgr');
 $modx->setLogLevel(modX::LOG_LEVEL_INFO);
 $modx->setLogTarget('ECHO');
 
+/*
+ * Always generate the xPDO model before packing. This makes a clean checkout
+ * sufficient for building an installable package; running build.schema.php
+ * manually is no longer required.
+ */
+$corePath=$root.'/core/components/modxcomments/';
+$modelPath=$corePath.'model/';
+$schema=$modelPath.'schema/modxcomments.mysql.schema.xml';
+
+$manager=$modx->getManager();
+$generator=$manager->getGenerator();
+if(!$generator->parseSchema($schema,$modelPath)){
+    fwrite(STDERR,"Could not parse ModxComments schema\n");
+    exit(1);
+}
+
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta');
+$builder->createPackage('modxcomments','0.2.0','beta2');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
-$category->set('category_name','ModxComments');
+$category->set('category','ModxComments');
 
 $snippet=$modx->newObject('modSnippet');
 $snippet->fromArray(array(
@@ -29,7 +45,7 @@ $category->addMany($snippet);
 $vehicle=$builder->createVehicle($category,array(
     xPDOTransport::PRESERVE_KEYS=>false,
     xPDOTransport::UPDATE_OBJECT=>true,
-    xPDOTransport::UNIQUE_KEY=>'category_name',
+    xPDOTransport::UNIQUE_KEY=>'category',
     xPDOTransport::RELATED_OBJECTS=>true,
     xPDOTransport::RELATED_OBJECT_ATTRIBUTES=>array(
         'Snippets'=>array(
@@ -60,4 +76,4 @@ $builder->setPackageAttributes(array(
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta transport package.\n";
+echo "Built ModxComments 0.2.0-beta2 transport package.\n";
