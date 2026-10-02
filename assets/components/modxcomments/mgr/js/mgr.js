@@ -1,0 +1,50 @@
+Ext.namespace('ModxComments');
+ModxComments.config={connectorUrl:MODx.config.assets_url+'components/modxcomments/mgr-connector.php'};
+ModxComments.grid.Comments=function(config){
+ config=config||{};
+ Ext.applyIf(config,{
+  id:'modxcomments-grid-comments',url:ModxComments.config.connectorUrl,baseParams:{action:'mgr/comment/getlist'},
+  fields:['id','resource_id','resource_title','author_name','content','status','createdon'],paging:true,remoteSort:true,
+  columns:[
+   {header:'ID',dataIndex:'id',width:55},
+   {header:_('modxcomments.resource'),dataIndex:'resource_title',width:180},
+   {header:_('modxcomments.author'),dataIndex:'author_name',width:130},
+   {header:_('modxcomments.comment'),dataIndex:'content',width:360},
+   {header:_('modxcomments.status'),dataIndex:'status',width:100},
+   {header:_('modxcomments.createdon'),dataIndex:'createdon',width:130}
+  ],
+  tbar:[
+   {xtype:'textfield',emptyText:_('search'),listeners:{change:{fn:this.search,scope:this,buffer:400}}},
+   {text:_('modxcomments.all'),handler:function(){this.filterStatus('');},scope:this},
+   {text:_('modxcomments.published'),handler:function(){this.filterStatus('published');},scope:this},
+   {text:_('modxcomments.pending'),handler:function(){this.filterStatus('pending');},scope:this}
+  ],
+  listeners:{rowcontextmenu:function(grid,rowIndex,event){event.stopEvent();grid.getSelectionModel().selectRow(rowIndex);grid.showMenu(grid.getStore().getAt(rowIndex),event);}}
+ });
+ ModxComments.grid.Comments.superclass.constructor.call(this,config);
+};
+Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
+ search:function(field){this.getStore().baseParams.query=field.getValue();this.getBottomToolbar().changePage(1);},
+ filterStatus:function(status){this.getStore().baseParams.status=status;this.getBottomToolbar().changePage(1);},
+ showMenu:function(record,event){
+  new Ext.menu.Menu({items:[
+   {text:_('modxcomments.publish'),handler:function(){this.setStatus(record.id,'published');},scope:this},
+   {text:_('modxcomments.pending'),handler:function(){this.setStatus(record.id,'pending');},scope:this},
+   {text:_('modxcomments.spam'),handler:function(){this.setStatus(record.id,'spam');},scope:this},
+   '-',{text:_('modxcomments.delete'),handler:function(){this.removeComment(record.id);},scope:this}
+  ]}).showAt(event.getXY());
+ },
+ setStatus:function(id,status){MODx.Ajax.request({url:ModxComments.config.connectorUrl,params:{action:'mgr/comment/status',id:id,status:status},listeners:{success:{fn:function(){this.refresh();},scope:this}}});},
+ removeComment:function(id){MODx.msg.confirm({title:_('modxcomments.delete'),text:_('modxcomments.delete_confirm'),url:ModxComments.config.connectorUrl,params:{action:'mgr/comment/remove',id:id},listeners:{success:{fn:function(){this.refresh();},scope:this}}});}
+});
+Ext.reg('modxcomments-grid-comments',ModxComments.grid.Comments);
+ModxComments.panel.Home=function(config){
+ config=config||{};
+ Ext.apply(config,{border:false,baseCls:'modx-formpanel',cls:'container',items:[
+  {html:'<h2>'+_('modxcomments')+'</h2>',border:false,cls:'modx-page-header'},
+  {xtype:'modxcomments-grid-comments',cls:'main-wrapper'}
+ ]});
+ ModxComments.panel.Home.superclass.constructor.call(this,config);
+};
+Ext.extend(ModxComments.panel.Home,MODx.Panel);
+Ext.reg('modxcomments-panel-home',ModxComments.panel.Home);
