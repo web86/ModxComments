@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-beta5
+- Require guest email on both frontend and server.
+- Add a hidden honeypot anti-spam field.
+- Add reversible 👍 / 👎 voting with per-user/browser identity.
+- Add editor toolbar with URL insertion and emoji picker.
+- Add reply quote previews in the composer and rendered reply cards.
+- Add a vote table created automatically during package upgrade.
+- Clarify that edit_time applies only to authenticated comment owners.
+
 ## 0.2.0-beta4
 - Replace browser prompt/confirm flows with inline edit and delete states.
 - Add loading, busy, empty, success/error, reply and character-count states on the frontend.
