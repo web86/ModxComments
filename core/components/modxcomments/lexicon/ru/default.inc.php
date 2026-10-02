@@ -1,5 +1,6 @@
 <?php
 $_lang['modxcomments']='Комментарии';
+$_lang['modxcomments.intro']='Просмотр, поиск и модерация комментариев. Для действий используйте правый клик или двойной клик по строке.';
 $_lang['modxcomments.resource']='Ресурс';
 $_lang['modxcomments.author']='Автор';
 $_lang['modxcomments.email']='Email';
@@ -7,6 +8,7 @@ $_lang['modxcomments.comment']='Комментарий';
 $_lang['modxcomments.status']='Статус';
 $_lang['modxcomments.createdon']='Создан';
 $_lang['modxcomments.search']='Поиск комментариев…';
+$_lang['modxcomments.clear']='Сбросить';
 $_lang['modxcomments.all']='Все';
 $_lang['modxcomments.published']='Опубликованные';
 $_lang['modxcomments.pending']='На модерации';
@@ -16,4 +18,6 @@ $_lang['modxcomments.mark_pending']='Отправить на модерацию'
 $_lang['modxcomments.mark_spam']='Пометить как спам';
 $_lang['modxcomments.delete']='Удалить';
 $_lang['modxcomments.delete_confirm']='Удалить комментарий? Ответы в ветке сохранятся.';
+$_lang['modxcomments.status_updated']='Статус комментария обновлён.';
+$_lang['modxcomments.deleted']='Комментарий удалён.';
 $_lang['modxcomments.actions']='Действия';
