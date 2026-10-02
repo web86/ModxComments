@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta4
+# ModxComments 0.2.0-beta5
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -50,7 +50,7 @@ Uninstall intentionally does **not** drop comment data.
 
 ## Updating from 0.2.0-beta
 
-Build/install `0.2.0-beta4` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-beta5` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
 
 ```text
 namespace = modxcomments
@@ -101,3 +101,14 @@ ModxCommentsOnCommentDelete
 ```
 
 Frontend and manager UI received the first full visual/interaction pass in beta4.
+
+## beta5 interaction additions
+
+- guest email is required and validated server-side;
+- hidden honeypot field rejects simple form bots;
+- 👍 / 👎 voting with one reversible vote per authenticated user or anonymous browser token;
+- compact editor toolbar with safe URL insertion;
+- five common emoji plus an expandable emoji panel;
+- replies display a short quote from the parent comment.
+
+`modxcomments.edit_time` is measured in seconds. The default `900` means an authenticated author can edit/delete their own comment for 15 minutes after posting. Guest comments are intentionally not editable because v0.2 does not issue a guest ownership credential.
