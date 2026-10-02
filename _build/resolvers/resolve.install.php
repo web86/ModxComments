@@ -59,11 +59,6 @@ foreach($settings as $key=>$spec){
     $setting->save();
 }
 
-/*
- * MODX 2.3+ manager routing: menu action is the controller/action name,
- * resolved through namespace. Do not create/use deprecated modAction records.
- * Also repair installs made by the previous beta.
- */
 $legacyActions=$modx->getCollection('modAction',array('namespace'=>'modxcomments'));
 foreach($legacyActions as $legacyAction){
     $legacyAction->remove();
@@ -88,6 +83,7 @@ $menu->save();
 if($modx->addPackage('modxcomments',$modelPath)){
     $manager=$modx->getManager();
     $manager->createObjectContainer('ModxCommentsComment');
+    $manager->createObjectContainer('ModxCommentsVote');
 }
 
 foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxCommentsOnCommentDelete') as $eventName){
