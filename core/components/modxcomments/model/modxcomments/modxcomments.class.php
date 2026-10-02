@@ -512,14 +512,23 @@ class ModxComments
 
     protected function renderPlainText($text)
     {
-        $pattern = '~(https?://[^\s<>]+)~iu';
+        /*
+         * User input remains plain text. We only recognize safe HTTP(S) links:
+         *   https://example.com
+         *   [Link text](https://example.com)
+         */
+        $pattern = '~(\\[[^\\]\\r\\n]{1,200}\\]\\(https?://[^\\s<>\\)]+\\)|https?://[^\\s<>]+)~iu';
         $parts = preg_split($pattern, $text, -1, PREG_SPLIT_DELIM_CAPTURE);
         $html = '';
 
         foreach ($parts as $part) {
             if ($part === '') continue;
 
-            if (preg_match('~^https?://[^\s<>]+$~iu', $part)) {
+            if (preg_match('~^\\[([^\\]\\r\\n]{1,200})\\]\\((https?://[^\\s<>\\)]+)\\)$~iu', $part, $match)) {
+                $label = htmlspecialchars($match[1], ENT_QUOTES, 'UTF-8');
+                $url = htmlspecialchars($match[2], ENT_QUOTES, 'UTF-8');
+                $html .= '<a href="' . $url . '" rel="nofollow ugc noopener" target="_blank">' . $label . '</a>';
+            } elseif (preg_match('~^https?://[^\\s<>]+$~iu', $part)) {
                 $safe = htmlspecialchars($part, ENT_QUOTES, 'UTF-8');
                 $html .= '<a href="' . $safe . '" rel="nofollow ugc noopener" target="_blank">' . $safe . '</a>';
             } else {
