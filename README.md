@@ -74,6 +74,9 @@ modxcomments.turnstile_enabled = 0
 modxcomments.turnstile_site_key =
 modxcomments.turnstile_secret_key =
 modxcomments.turnstile_guests_only = 1
+modxcomments.notify_admin = 0
+modxcomments.notify_admin_email =
+modxcomments.notify_replies = 0
 ```
 
 ## Public API
