@@ -30,8 +30,9 @@ ModxComments.grid.Comments=function(config){
         url:ModxComments.config.connectorUrl,
         baseParams:{action:'mgr/comment/getlist'},
         fields:[
-            'id','resource_id','resource_title','author_name','author_email',
-            'content','status','createdon'
+            'id','resource_id','resource_title','parent_id','thread_id','depth','path',
+            'author_name','author_email','content','parent_author','parent_excerpt',
+            'is_admin','status','createdon'
         ],
         paging:true,
         remoteSort:true,
@@ -40,9 +41,47 @@ ModxComments.grid.Comments=function(config){
         columns:[
             {header:'ID',dataIndex:'id',width:55,fixed:true},
             {header:_('modxcomments.resource'),dataIndex:'resource_title',width:180},
-            {header:_('modxcomments.author'),dataIndex:'author_name',width:130},
+            {
+                header:_('modxcomments.author'),
+                dataIndex:'author_name',
+                width:150,
+                renderer:function(value,meta,record){
+                    var name=Ext.util.Format.htmlEncode(value||'');
+                    if(record.data.is_admin){
+                        return '<span class="mc-mgr-admin-badge" title="'+_('modxcomments.admin_reply')+'">★ '+_('modxcomments.admin')+'</span> '
+                            +'<strong>'+name+'</strong>';
+                    }
+                    return name;
+                }
+            },
             {header:_('modxcomments.email'),dataIndex:'author_email',width:190,renderer:ModxComments.renderEmail},
-            {header:_('modxcomments.comment'),dataIndex:'content',width:360},
+            {
+                header:_('modxcomments.comment'),
+                dataIndex:'content',
+                width:430,
+                renderer:function(value,meta,record){
+                    var depth=Math.max(0,parseInt(record.data.depth,10)||0);
+                    var indent=Math.min(depth,6)*18;
+                    var html='<div class="mc-mgr-thread-cell" style="padding-left:'+indent+'px">';
+
+                    if(depth>0){
+                        html+='<div class="mc-mgr-reply-meta">↳ '+_('modxcomments.reply_to');
+                        if(record.data.parent_author){
+                            html+=' <strong>'+Ext.util.Format.htmlEncode(record.data.parent_author)+'</strong>';
+                        }
+                        if(record.data.parent_excerpt){
+                            html+=' <span>“'+Ext.util.Format.htmlEncode(record.data.parent_excerpt)+'”</span>';
+                        }
+                        html+='</div>';
+                    }else{
+                        html+='<div class="mc-mgr-root-meta">'+_('modxcomments.thread_root')+'</div>';
+                    }
+
+                    html+='<div class="mc-mgr-comment-text">'+Ext.util.Format.htmlEncode(value||'')+'</div>';
+                    html+='</div>';
+                    return html;
+                }
+            },
             {header:_('modxcomments.status'),dataIndex:'status',width:110,renderer:ModxComments.renderStatus},
             {header:_('modxcomments.createdon'),dataIndex:'createdon',width:135}
         ],
@@ -51,7 +90,21 @@ ModxComments.grid.Comments=function(config){
                 xtype:'textfield',
                 width:240,
                 emptyText:_('modxcomments.search'),
-                listeners:{change:{fn:this.search,scope:this,buffer:400}}
+                viewConfig:{
+            getRowClass:function(record){
+                var cls=[];
+                if(record.data.is_admin){
+                    cls.push('mc-mgr-row-admin');
+                }
+                if((parseInt(record.data.depth,10)||0)>0){
+                    cls.push('mc-mgr-row-reply');
+                }else{
+                    cls.push('mc-mgr-row-root');
+                }
+                return cls.join(' ');
+            }
+        },
+        listeners:{change:{fn:this.search,scope:this,buffer:400}}
             },
             {
                 text:_('modxcomments.clear'),
