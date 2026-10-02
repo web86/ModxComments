@@ -39,38 +39,22 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
         $limit=(int)$this->getProperty('limit',20);
         $start=(int)$this->getProperty('start',0);
 
-        $base=$this->modx->newQuery($this->classKey);
-        $base=$this->prepareQueryBeforeCount($base);
-        $data['total']=$this->modx->getCount($this->classKey,$base);
+        $c=$this->modx->newQuery($this->classKey);
+        $c=$this->prepareQueryBeforeCount($c);
+        $data['total']=$this->modx->getCount($this->classKey,$c);
 
-        $rootQuery=$this->modx->newQuery($this->classKey);
-        $rootQuery=$this->prepareQueryBeforeCount($rootQuery);
-        $rootQuery->where(array('parent_id'=>0));
-        $rootQuery->sortby('createdon','DESC');
+        /*
+         * Newest threads first, but preserve materialized-path order inside
+         * each thread so parent/reply structure remains visually coherent.
+         */
+        $c->sortby('thread_id','DESC');
+        $c->sortby('path','ASC');
 
         if($limit>0){
-            $rootQuery->limit($limit,$start);
+            $c->limit($limit,$start);
         }
 
-        $roots=$this->modx->getCollection($this->classKey,$rootQuery);
-        $results=array();
-
-        foreach($roots as $root){
-            $threadId=(int)$root->get('thread_id');
-            if($threadId<1){
-                $threadId=(int)$root->get('id');
-            }
-
-            $threadQuery=$this->modx->newQuery($this->classKey);
-            $threadQuery->where(array('thread_id'=>$threadId));
-            $threadQuery->sortby('path','ASC');
-
-            foreach($this->modx->getCollection($this->classKey,$threadQuery) as $comment){
-                $results[]=$comment;
-            }
-        }
-
-        $data['results']=$results;
+        $data['results']=$this->modx->getCollection($this->classKey,$c);
         return $data;
     }
 
