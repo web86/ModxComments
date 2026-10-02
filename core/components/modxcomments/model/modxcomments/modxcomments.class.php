@@ -419,6 +419,11 @@ class ModxComments
             $from = trim((string) $this->modx->getOption('emailsender', null, ''));
             $fromName = trim((string) $this->modx->getOption('site_name', null, 'ModxComments'));
 
+            if ($from === '' || !filter_var($from, FILTER_VALIDATE_EMAIL)) {
+                $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] MODX emailsender must contain a valid email address for notifications.');
+                return false;
+            }
+
             $mail->set(modMail::MAIL_BODY, $body);
             $mail->set(modMail::MAIL_BODY_TEXT, $body);
             $mail->set(modMail::MAIL_FROM, $from);
