@@ -69,3 +69,9 @@ $_lang['setting_modxcomments.notify_admin_email_desc']='Email address that recei
 
 $_lang['setting_modxcomments.notify_replies']='Notify authors about replies';
 $_lang['setting_modxcomments.notify_replies_desc']='If enabled, email the author of the parent comment when a reply becomes published. Pending replies are not emailed until a moderator publishes them.';
+
+
+$_lang['modxcomments.admin']='Admin';
+$_lang['modxcomments.admin_reply']='Administrator reply';
+$_lang['modxcomments.reply_to']='Reply to';
+$_lang['modxcomments.thread_root']='Thread root';
