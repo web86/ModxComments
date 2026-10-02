@@ -528,3 +528,29 @@
     align-self: stretch;
   }
 }
+
+
+/* beta7: pending comment preview */
+.mc-comment.is-pending-preview {
+  opacity: .62;
+  border-style: dashed;
+  background: var(--mc-surface);
+  box-shadow: none;
+}
+
+.mc-pending-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #fff6dc;
+  color: #8a6413;
+  font-size: .76em;
+  font-weight: 600;
+}
+
+.mc-pending-note {
+  margin-top: 12px;
+  color: #8a6413;
+  font-size: .84em;
+  font-style: italic;
+}
