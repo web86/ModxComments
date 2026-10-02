@@ -11,11 +11,6 @@ $modx->initialize('mgr');
 $modx->setLogLevel(modX::LOG_LEVEL_INFO);
 $modx->setLogTarget('ECHO');
 
-/*
- * Always generate the xPDO model before packing. This makes a clean checkout
- * sufficient for building an installable package; running build.schema.php
- * manually is no longer required.
- */
 $corePath=$root.'/core/components/modxcomments/';
 $modelPath=$corePath.'model/';
 $schema=$modelPath.'schema/modxcomments.mysql.schema.xml';
@@ -28,17 +23,21 @@ if(!$generator->parseSchema($schema,$modelPath)){
 }
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta2');
+$builder->createPackage('modxcomments','0.2.0','beta3');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
 $category->set('category','ModxComments');
 
+$snippetSource=file_get_contents($root.'/core/components/modxcomments/elements/snippets/snippet.modxcomments.php');
+$snippetSource=preg_replace('/^\s*<\?(?:php)?\s*/i','',$snippetSource);
+$snippetSource=preg_replace('/\?>\s*$/','',$snippetSource);
+
 $snippet=$modx->newObject('modSnippet');
 $snippet->fromArray(array(
     'name'=>'ModxComments',
     'description'=>'AJAX-first comments for MODX resources.',
-    'snippet'=>file_get_contents($root.'/core/components/modxcomments/elements/snippets/snippet.modxcomments.php'),
+    'snippet'=>trim($snippetSource),
 ),'',true,true);
 $category->addMany($snippet);
 
@@ -76,4 +75,4 @@ $builder->setPackageAttributes(array(
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta2 transport package.\n";
+echo "Built ModxComments 0.2.0-beta3 transport package.\n";
