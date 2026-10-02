@@ -16,6 +16,8 @@
       this.deletingId = 0;
       this.captchaToken = '';
       this.turnstileWidget = null;
+      this.frequentEmoji = ['😀', '😂', '👍', '❤️', '🎉'];
+      this.moreEmoji = ['😊', '😍', '🤔', '😅', '😢', '😡', '🙏', '👏', '🔥', '✅', '😉', '🤝', '💡', '🚀', '💯'];
     }
 
     async init() {
@@ -70,6 +72,8 @@
         if (action === 'delete') this.startDelete(id);
         if (action === 'cancel-delete') this.cancelDelete();
         if (action === 'confirm-delete') this.deleteComment(id, button);
+        if (action === 'vote-up') this.vote(id, 1, button);
+        if (action === 'vote-down') this.vote(id, -1, button);
       });
     }
 
@@ -87,8 +91,12 @@
       composer.innerHTML = `
         <form class="mc-form" data-mc-form>
           <div class="mc-form-title">Leave a comment</div>
+
           <div class="mc-replying" data-mc-replying hidden>
-            <span data-mc-reply-label></span>
+            <div class="mc-reply-preview">
+              <strong data-mc-reply-label></strong>
+              <span data-mc-reply-excerpt></span>
+            </div>
             <button type="button" class="mc-link-button" data-mc-cancel-reply>Cancel</button>
           </div>
 
@@ -99,16 +107,42 @@
                 <input name="author_name" maxlength="190" autocomplete="name" required>
               </label>
               <label>
-                <span>Email <small>(optional)</small></span>
-                <input name="author_email" type="email" maxlength="254" autocomplete="email">
+                <span>Email</span>
+                <input name="author_email" type="email" maxlength="254" autocomplete="email" required>
               </label>
             </div>
           ` : ''}
 
-          <label class="mc-comment-field">
-            <span class="mc-visually-hidden">Comment</span>
-            <textarea name="content" rows="5" maxlength="${maxLength}" placeholder="Write a comment…" required></textarea>
-          </label>
+          <div class="mc-honeypot" aria-hidden="true">
+            <label>
+              <span>Website</span>
+              <input name="website" type="text" tabindex="-1" autocomplete="off">
+            </label>
+          </div>
+
+          <div class="mc-editor">
+            <div class="mc-toolbar" data-mc-toolbar>
+              <div class="mc-toolbar-main">
+                <button type="button" class="mc-tool" data-mc-link-toggle title="Insert link" aria-label="Insert link">🔗</button>
+                ${this.frequentEmoji.map((emoji) => `<button type="button" class="mc-tool mc-emoji" data-mc-emoji="${emoji}" title="Insert ${emoji}">${emoji}</button>`).join('')}
+                <button type="button" class="mc-tool" data-mc-emoji-toggle title="More emoji" aria-label="More emoji">＋</button>
+              </div>
+
+              <div class="mc-link-panel" data-mc-link-panel hidden>
+                <input type="url" placeholder="https://example.com" data-mc-link-input>
+                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-link-insert>Insert</button>
+              </div>
+
+              <div class="mc-emoji-panel" data-mc-emoji-panel hidden>
+                ${this.moreEmoji.map((emoji) => `<button type="button" class="mc-emoji-choice" data-mc-emoji="${emoji}">${emoji}</button>`).join('')}
+              </div>
+            </div>
+
+            <label class="mc-comment-field">
+              <span class="mc-visually-hidden">Comment</span>
+              <textarea name="content" rows="5" maxlength="${maxLength}" placeholder="Write a comment…" required></textarea>
+            </label>
+          </div>
 
           <div class="mc-form-meta">
             <span class="mc-counter" data-mc-counter>0 / ${maxLength}</span>
@@ -131,6 +165,39 @@
 
       textarea.addEventListener('input', () => {
         counter.textContent = `${textarea.value.length} / ${maxLength}`;
+      });
+
+      composer.querySelectorAll('[data-mc-emoji]').forEach((button) => {
+        button.addEventListener('click', () => {
+          this.insertAtCursor(textarea, button.dataset.mcEmoji || '');
+          const panel = composer.querySelector('[data-mc-emoji-panel]');
+          if (panel) panel.hidden = true;
+        });
+      });
+
+      const emojiToggle = composer.querySelector('[data-mc-emoji-toggle]');
+      const emojiPanel = composer.querySelector('[data-mc-emoji-panel]');
+      emojiToggle.addEventListener('click', () => {
+        emojiPanel.hidden = !emojiPanel.hidden;
+        composer.querySelector('[data-mc-link-panel]').hidden = true;
+      });
+
+      const linkToggle = composer.querySelector('[data-mc-link-toggle]');
+      const linkPanel = composer.querySelector('[data-mc-link-panel]');
+      const linkInput = composer.querySelector('[data-mc-link-input]');
+      linkToggle.addEventListener('click', () => {
+        linkPanel.hidden = !linkPanel.hidden;
+        emojiPanel.hidden = true;
+        if (!linkPanel.hidden) linkInput.focus();
+      });
+
+      composer.querySelector('[data-mc-link-insert]').addEventListener('click', () => {
+        let url = linkInput.value.trim();
+        if (!url) return;
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        this.insertAtCursor(textarea, url);
+        linkInput.value = '';
+        linkPanel.hidden = true;
       });
     }
 
@@ -167,6 +234,7 @@
         return `
           <article class="mc-comment is-editing" data-comment-id="${id}" style="--mc-depth:${depth}">
             ${this.renderCommentHeader(comment)}
+            ${this.renderReplyQuote(comment)}
             <div class="mc-inline-panel">
               <label>
                 <span class="mc-visually-hidden">Edit comment</span>
@@ -200,11 +268,22 @@
         </div>
       ` : '';
 
+      const votes = comment.votes || { up: 0, down: 0, mine: 0 };
+
       return `
         <article class="mc-comment" data-comment-id="${id}" style="--mc-depth:${depth}">
           ${this.renderCommentHeader(comment)}
+          ${this.renderReplyQuote(comment)}
           <div class="mc-content">${comment.contentHtml}</div>
-          ${actions ? `<div class="mc-comment-actions">${actions}</div>` : ''}
+
+          <div class="mc-comment-footer">
+            <div class="mc-comment-actions">${actions}</div>
+            <div class="mc-votes" aria-label="Comment rating">
+              <button type="button" class="mc-vote ${Number(votes.mine) === 1 ? 'is-active' : ''}" data-mc-action="vote-up" data-id="${id}" title="Like">👍 <span>${Number(votes.up) || 0}</span></button>
+              <button type="button" class="mc-vote ${Number(votes.mine) === -1 ? 'is-active' : ''}" data-mc-action="vote-down" data-id="${id}" title="Dislike">👎 <span>${Number(votes.down) || 0}</span></button>
+            </div>
+          </div>
+
           ${deletePanel}
         </article>
       `;
@@ -223,6 +302,22 @@
       `;
     }
 
+    renderReplyQuote(comment) {
+      const reply = comment.replyTo;
+      if (!reply) return '';
+
+      if (reply.deleted) {
+        return '<div class="mc-quote is-deleted">Reply to a deleted comment</div>';
+      }
+
+      return `
+        <div class="mc-quote">
+          <strong>${this.escape(reply.author || 'Guest')}</strong>
+          <span>${this.escape(reply.excerpt || '')}</span>
+        </div>
+      `;
+    }
+
     actionButton(action, id, label, extraClass = '') {
       return `<button type="button" class="mc-action ${extraClass}" data-mc-action="${action}" data-id="${id}">${label}</button>`;
     }
@@ -231,21 +326,37 @@
       this.parent = Number(id) || 0;
       const note = this.root.querySelector('[data-mc-replying]');
       const label = this.root.querySelector('[data-mc-reply-label]');
+      const excerpt = this.root.querySelector('[data-mc-reply-excerpt]');
 
-      if (!note || !label) return;
+      if (!note || !label || !excerpt) return;
 
       if (this.parent) {
         const target = this.comments.find((item) => Number(item.id) === this.parent);
         const name = target && target.author ? target.author.name : '';
+        const text = target && target.content ? target.content.replace(/\s+/g, ' ').trim() : '';
+
         label.textContent = name ? `Replying to ${name}` : `Replying to #${this.parent}`;
+        excerpt.textContent = text.length > 160 ? text.slice(0, 157) + '…' : text;
         note.hidden = false;
       } else {
         note.hidden = true;
         label.textContent = '';
+        excerpt.textContent = '';
       }
 
       const textarea = this.root.querySelector('textarea[name="content"]');
       if (textarea) textarea.focus();
+    }
+
+    insertAtCursor(textarea, text) {
+      if (!textarea || !text) return;
+      const start = typeof textarea.selectionStart === 'number' ? textarea.selectionStart : textarea.value.length;
+      const end = typeof textarea.selectionEnd === 'number' ? textarea.selectionEnd : start;
+      textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+      const position = start + text.length;
+      textarea.focus();
+      textarea.setSelectionRange(position, position);
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     startEdit(id) {
@@ -298,6 +409,7 @@
           content: data.get('content') || '',
           author_name: data.get('author_name') || '',
           author_email: data.get('author_email') || '',
+          website: data.get('website') || '',
           captcha_token: this.captchaToken
         }, 'POST');
 
@@ -356,6 +468,25 @@
         this.showStatus(this.humanError(error), true);
       } finally {
         this.setButtonBusy(button, false);
+      }
+    }
+
+    async vote(id, value, button) {
+      if (!id || !value) return;
+      button.disabled = true;
+
+      try {
+        const result = await this.request('web/comment/vote', { id, value }, 'POST');
+        const comment = this.comments.find((item) => Number(item.id) === Number(id));
+
+        if (comment && result.votes) {
+          comment.votes = result.votes;
+          this.renderComments(this.comments);
+        }
+      } catch (error) {
+        this.showStatus(this.humanError(error), true);
+      } finally {
+        button.disabled = false;
       }
     }
 
@@ -441,12 +572,15 @@
         content_too_long: 'Comment is too long.',
         author_name_required: 'Please enter your name.',
         author_name_too_long: 'The name is too long.',
+        author_email_required: 'Please enter your email address.',
         author_email_invalid: 'Please enter a valid email address.',
         rate_limit_exceeded: 'Too many comments. Please try again later.',
         captcha_failed: 'CAPTCHA verification failed. Please try again.',
+        spam_detected: 'The comment could not be submitted.',
         permission_denied: 'You cannot modify this comment.',
         edit_window_expired: 'The editing window for this comment has expired.',
-        comment_not_found: 'Comment not found.'
+        comment_not_found: 'Comment not found.',
+        vote_invalid: 'Invalid vote.'
       };
 
       return messages[code] || code.replace(/_/g, ' ');
