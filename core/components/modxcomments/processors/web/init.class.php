@@ -1,0 +1,24 @@
+<?php
+class ModxCommentsWebInitProcessor extends modProcessor
+{
+    /** @var ModxComments */
+    protected $comments;
+
+    public function initialize()
+    {
+        $corePath = $this->modx->getOption('modxcomments.core_path', null, MODX_CORE_PATH . 'components/modxcomments/');
+        require_once $corePath . 'model/modxcomments/modxcomments.class.php';
+        $this->comments = new ModxComments($this->modx);
+        return true;
+    }
+
+    public function process()
+    {
+        return $this->success('', array(
+            'csrf' => $this->comments->getCsrfToken(),
+            'user' => $this->comments->getCurrentUser(),
+            'settings' => $this->comments->getPublicConfig(),
+        ));
+    }
+}
+return 'ModxCommentsWebInitProcessor';
