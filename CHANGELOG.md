@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0-beta7
+- Fill MODX transport-package Instructions/Readme, License and Changelog metadata.
+- Add a dedicated installation/upgrade instruction document.
+- Show a newly submitted pending comment as a translucent, current-tab-only preview.
+- Add optional administrator email notifications for all new comments.
+- Add optional reply notifications when a reply becomes published.
+- Delay reply notification until moderation publishes a pending reply.
+- Track reply notification delivery to avoid duplicate emails.
+- Add localized system-setting names/descriptions for notification options.
+
 ## 0.2.0-beta6
 - Add localized names and clear descriptions for every ModxComments system setting.
 - Document and clarify `guest_status=pending` / `user_status=pending` moderation defaults.
