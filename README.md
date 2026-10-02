@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta5
+# ModxComments 0.2.0-beta6
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -50,14 +50,14 @@ Uninstall intentionally does **not** drop comment data.
 
 ## Updating from 0.2.0-beta
 
-Build/install `0.2.0-beta5` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-beta6` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
 
 ```text
 namespace = modxcomments
 action    = index
 ```
 
-No database migration is required for comments.
+beta6 converts the ModxComments tables to `utf8mb4` so 4-byte emoji are preserved. Existing comment rows remain in place; characters that were already stored as `?` cannot be reconstructed automatically.
 
 ## Settings
 
@@ -112,3 +112,40 @@ Frontend and manager UI received the first full visual/interaction pass in beta4
 - replies display a short quote from the parent comment.
 
 `modxcomments.edit_time` is measured in seconds. The default `900` means an authenticated author can edit/delete their own comment for 15 minutes after posting. Guest comments are intentionally not editable because v0.2 does not issue a guest ownership credential.
+
+
+## Moderation defaults
+
+To send guest comments to moderation by default:
+
+```text
+modxcomments.guest_status = pending
+```
+
+To moderate comments from authenticated MODX web users too:
+
+```text
+modxcomments.user_status = pending
+```
+
+Use `published` for immediate publication.
+
+## Comment permalinks
+
+Every rendered comment has an anchor such as:
+
+```text
+#comment-123
+```
+
+The visible `#123` link points to that anchor and can be copied/shared.
+
+## Safe labeled links
+
+The editor's link tool inserts:
+
+```text
+[Link text](https://example.com)
+```
+
+Only HTTP(S) links in this limited syntax are rendered as anchors. Arbitrary HTML remains escaped.
