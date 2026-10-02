@@ -59,3 +59,13 @@ $_lang['setting_modxcomments.turnstile_secret_key_desc']='Секретный к�
 
 $_lang['setting_modxcomments.turnstile_guests_only']='Turnstile только для гостей';
 $_lang['setting_modxcomments.turnstile_guests_only_desc']='Если включено, Turnstile требуется только гостям. Авторизованные MODX web-пользователи отправляют комментарии без CAPTCHA.';
+
+
+$_lang['setting_modxcomments.notify_admin']='Уведомлять администратора';
+$_lang['setting_modxcomments.notify_admin_desc']='Если включено, отправляет email администратору о каждом новом комментарии, включая комментарии со статусом pending. Используются штатные настройки почты/SMTP MODX.';
+
+$_lang['setting_modxcomments.notify_admin_email']='Email администратора для уведомлений';
+$_lang['setting_modxcomments.notify_admin_email_desc']='Адрес, на который отправляются уведомления о новых комментариях. Если оставить пустым, используется системная настройка MODX "emailsender".';
+
+$_lang['setting_modxcomments.notify_replies']='Уведомлять авторов об ответах';
+$_lang['setting_modxcomments.notify_replies_desc']='Если включено, автор родительского комментария получает email, когда ответ становится опубликованным. Ответы pending не отправляются по почте до публикации модератором.';
