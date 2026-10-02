@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0-beta11
+- Add a manager controller under controllers/default/index.class.php, which MODX 2.8 checks before controllers/index.class.php.
+- Add a legacy index.php compatibility fallback for installations that unexpectedly use modManagerControllerDeprecated.
+- Keep namespace routing (namespace=modxcomments, action=index) as the primary manager route.
+
 ## 0.2.0-beta10
 - Fix clean-install warning when the xPDO model directory is not yet available during the PHP resolver.
 - Create and migrate ModxComments tables directly in the installer resolver.
