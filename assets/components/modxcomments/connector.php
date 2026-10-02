@@ -23,6 +23,13 @@ if ($context === '') $context = 'web';
 $modx = new modX();
 $modx->initialize($context);
 
+// Comments contain emoji and other 4-byte Unicode characters.
+try {
+    $modx->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
+} catch (Exception $e) {
+    $modx->log(modX::LOG_LEVEL_WARN, '[ModxComments] Could not switch connection to utf8mb4: ' . $e->getMessage());
+}
+
 if (strtoupper(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET') === 'OPTIONS') {
     http_response_code(204);
     exit;
