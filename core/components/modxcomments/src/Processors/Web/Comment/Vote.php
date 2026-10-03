@@ -28,7 +28,8 @@ class Vote extends Processor
         try{
             return $this->success('',$this->comments->voteComment(
                 (int)$this->getProperty('id',0),
-                (int)$this->getProperty('value',0)
+                (int)$this->getProperty('value',0),
+                (string)$this->getProperty('resource_token','')
             ));
         }catch(\InvalidArgumentException $e){
             return $this->failure($e->getMessage());
