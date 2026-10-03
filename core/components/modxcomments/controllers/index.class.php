@@ -16,7 +16,10 @@ class ModxcommentsIndexManagerController extends ModxCommentsManagerControllerBa
 
     public function checkPermissions()
     {
-        return true;
+        if (!$this->modx->user) return false;
+
+        return (bool) $this->modx->user->get('sudo')
+            || $this->modx->user->isMember('Administrator');
     }
 
     public function getPageTitle()
