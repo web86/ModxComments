@@ -1,37 +1,46 @@
 <?php
 /**
- * Development helper: parse the schema, generate model classes/maps, and create the table.
- * Run from the MODX site root: php _build/build.schema.php
+ * MODX 3 development helper: generate the xPDO 3 model and create tables.
  */
-$root = dirname(__DIR__);
-require_once $root . '/config.core.php';
-require_once MODX_CORE_PATH . 'config/' . MODX_CONFIG_KEY . '.inc.php';
-require_once MODX_CORE_PATH . 'model/modx/modx.class.php';
+use MODX\Revolution\modX;
+use ModxComments\Model\Comment;
+use ModxComments\Model\Vote;
+use xPDO\xPDO;
 
-$modx = new modX();
+$root=dirname(__DIR__);
+require_once $root.'/config.core.php';
+require_once MODX_CORE_PATH.'vendor/autoload.php';
+
+$modx=modX::getInstance(null,array(
+    xPDO::OPT_CONN_INIT=>array(xPDO::OPT_CONN_MUTABLE=>true),
+));
 $modx->initialize('mgr');
 $modx->setLogLevel(modX::LOG_LEVEL_INFO);
 $modx->setLogTarget('ECHO');
 
-$corePath = MODX_CORE_PATH . 'components/modxcomments/';
-$modelPath = $corePath . 'model/';
-$schema = $modelPath . 'schema/modxcomments.mysql.schema.xml';
+$corePath=$root.'/core/components/modxcomments/';
+$modelPath=$corePath.'src/';
+$schema=$corePath.'model/schema/modxcomments.mysql.schema.xml';
 
-$manager = $modx->getManager();
-$generator = $manager->getGenerator();
+$manager=$modx->getManager();
+$generator=$manager->getGenerator();
 
-if (!$generator->parseSchema($schema, $modelPath)) {
-    fwrite(STDERR, "Could not parse schema\n");
+if(!$generator->parseSchema($schema,$modelPath,array(
+    'compile'=>0,
+    'update'=>1,
+    'regenerate'=>1,
+    'namespacePrefix'=>'ModxComments\\',
+))){
+    fwrite(STDERR,"Could not parse MODX 3 schema\n");
     exit(1);
 }
 
-if (!$modx->addPackage('modxcomments', $modelPath)) {
-    fwrite(STDERR, "Could not add package\n");
+if(!$modx->addPackage('ModxComments\\Model',$modelPath,null,'ModxComments\\')){
+    fwrite(STDERR,"Could not add ModxComments model package\n");
     exit(1);
 }
 
-if (!$manager->createObjectContainer('ModxCommentsComment')) {
-    fwrite(STDERR, "Could not create comments table (it may already exist).\n");
-}
+$manager->createObjectContainer(Comment::class);
+$manager->createObjectContainer(Vote::class);
 
-echo "ModxComments schema/model ready.\n";
+echo "ModxComments MODX 3 schema/model ready.\n";
