@@ -1,4 +1,4 @@
-# ModxComments 0.3.0-beta6 — MODX 3
+# ModxComments 0.3.0-beta7 — MODX 3
 
 This branch is the MODX Revolution 3 version of ModxComments.
 
@@ -57,7 +57,7 @@ php _build/build.transport.php
 The package signature is:
 
 ```text
-modxcomments-0.3.0-beta6
+modxcomments-0.3.0-beta7
 ```
 
 For development model generation only:
