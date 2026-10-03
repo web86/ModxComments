@@ -243,7 +243,7 @@ class ModxComments
             'write_comment','post_comment','no_comments','no_comments_text','comment_deleted',
             'edit_comment','save','reply','edit','delete','delete_question','delete_replies',
             'awaiting_moderation','comment_rating','like','dislike','guest','permalink',
-            'pending','edited','reply_deleted','replying_to','replying_to_id','captcha_required',
+            'pending','edited','admin','reply_deleted','replying_to','replying_to_id','captcha_required',
             'submitted_pending','submitted','comment_empty','posting','saving','updated',
             'deleting','deleted','previous','next','page'
         );
@@ -884,6 +884,32 @@ class ModxComments
         return nl2br($html, false);
     }
 
+    protected function getCommentAuthorMeta($comment)
+    {
+        $userId = (int) $comment->get('user_id');
+        $name = (string) $comment->get('author_name');
+        $isAdmin = false;
+
+        if ($userId > 0) {
+            $authorUser = $this->modx->getObject('MODX\\Revolution\\modUser', $userId);
+            if ($authorUser) {
+                $isAdmin = (bool) $authorUser->get('sudo') || $authorUser->isMember('Administrator');
+                $profile = $authorUser->getOne('Profile');
+                if ($profile && trim((string) $profile->get('fullname')) !== '') {
+                    $name = trim((string) $profile->get('fullname'));
+                } elseif (trim((string) $authorUser->get('username')) !== '') {
+                    $name = trim((string) $authorUser->get('username'));
+                }
+            }
+        }
+
+        return array(
+            'id' => $userId,
+            'name' => $name,
+            'isAdmin' => $isAdmin,
+        );
+    }
+
     protected function serializeComment($comment)
     {
         $deleted = $comment->get('status') === 'deleted';
@@ -910,14 +936,17 @@ class ModxComments
                     $parentText = $this->stringSlice($parentText, 0, 177) . '…';
                 }
 
+                $parentAuthor = $this->getCommentAuthorMeta($parent);
                 $replyTo = array(
                     'id' => (int) $parent->get('id'),
-                    'author' => $parent->get('status') === 'deleted' ? '' : (string) $parent->get('author_name'),
+                    'author' => $parent->get('status') === 'deleted' ? '' : (string) $parentAuthor['name'],
                     'excerpt' => $parent->get('status') === 'deleted' ? '' : $parentText,
                     'deleted' => $parent->get('status') === 'deleted',
                 );
             }
         }
+
+        $authorMeta = $this->getCommentAuthorMeta($comment);
 
         return array(
             'id' => (int) $comment->get('id'),
@@ -928,7 +957,8 @@ class ModxComments
             'deleted' => $deleted,
             'author' => array(
                 'id' => (int) $comment->get('user_id'),
-                'name' => $deleted ? '' : (string) $comment->get('author_name'),
+                'name' => $deleted ? '' : (string) $authorMeta['name'],
+                'isAdmin' => !$deleted && (bool) $authorMeta['isAdmin'],
             ),
             'content' => $deleted ? '' : (string) $comment->get('content'),
             'contentHtml' => $deleted ? '' : (string) $comment->get('content_html'),
