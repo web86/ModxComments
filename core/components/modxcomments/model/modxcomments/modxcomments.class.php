@@ -4,7 +4,7 @@
  */
 $isModx3 = class_exists('MODX\\Revolution\\modX');
 
-$serviceFile = dirname(dirname(dirname(__DIR__)))
+$serviceFile = dirname(dirname(__DIR__))
     . '/compat/'
     . ($isModx3 ? 'modx3' : 'modx2')
     . '/service.class.php';
