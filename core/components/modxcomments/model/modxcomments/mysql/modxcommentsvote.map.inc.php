@@ -1,0 +1,39 @@
+<?php
+$xpdo_meta_map['ModxCommentsVote']=array(
+    'package'=>'modxcomments',
+    'version'=>'1.1',
+    'table'=>'modxcomments_votes',
+    'extends'=>'xPDOSimpleObject',
+    'tableMeta'=>array('engine'=>'InnoDB'),
+    'fields'=>array(
+        'comment_id'=>0,
+        'voter_hash'=>'',
+        'value'=>1,
+        'createdon'=>NULL,
+    ),
+    'fieldMeta'=>array(
+        'comment_id'=>array('dbtype'=>'int','precision'=>'10','attributes'=>'unsigned','phptype'=>'integer','null'=>false,'default'=>0),
+        'voter_hash'=>array('dbtype'=>'char','precision'=>'64','phptype'=>'string','null'=>false,'default'=>''),
+        'value'=>array('dbtype'=>'tinyint','precision'=>'2','phptype'=>'integer','null'=>false,'default'=>1),
+        'createdon'=>array('dbtype'=>'datetime','phptype'=>'datetime','null'=>false),
+    ),
+    'indexes'=>array(
+        'comment_voter'=>array(
+            'alias'=>'comment_voter','primary'=>false,'unique'=>true,'type'=>'BTREE',
+            'columns'=>array(
+                'comment_id'=>array('length'=>'','collation'=>'A','null'=>false),
+                'voter_hash'=>array('length'=>'','collation'=>'A','null'=>false),
+            ),
+        ),
+        'comment_value'=>array(
+            'alias'=>'comment_value','primary'=>false,'unique'=>false,'type'=>'BTREE',
+            'columns'=>array(
+                'comment_id'=>array('length'=>'','collation'=>'A','null'=>false),
+                'value'=>array('length'=>'','collation'=>'A','null'=>false),
+            ),
+        ),
+    ),
+    'aggregates'=>array(
+        'Comment'=>array('class'=>'ModxCommentsComment','local'=>'comment_id','foreign'=>'id','cardinality'=>'one','owner'=>'foreign'),
+    ),
+);
