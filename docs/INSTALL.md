@@ -52,3 +52,23 @@ Install a newer transport package over the previous beta. Comment data is preser
 ## Uninstall
 
 Uninstall removes the component registration, settings and manager menu, but intentionally preserves comment tables/data.
+
+
+## Frontend pagination
+
+`modxcomments.threads_per_page` controls how many root comment threads appear per page (default: 20). Replies for each selected root are loaded together, so a thread is never split between pages.
+
+## Guest editing
+
+New guest comments receive an HttpOnly ownership cookie. During `modxcomments.edit_time`, that same browser can edit/delete its own guest comments. Comments created before beta13 do not have an ownership hash and therefore remain non-editable for guests.
+
+## Email templates
+
+The package installs these editable Chunks:
+
+- `ModxCommentsEmailAdminSubject`
+- `ModxCommentsEmailAdminBody`
+- `ModxCommentsEmailReplySubject`
+- `ModxCommentsEmailReplyBody`
+
+Existing Chunks with these names are preserved during upgrades.
