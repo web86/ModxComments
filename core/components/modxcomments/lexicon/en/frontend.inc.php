@@ -63,3 +63,5 @@ $_lang['mc.error.edit_window_expired']='The editing window for this comment has 
 $_lang['mc.error.comment_not_found']='Comment not found.';
 $_lang['mc.error.vote_invalid']='Invalid vote.';
 $_lang['mc.error.comment_create_cancelled']='Comment submission was cancelled.';
+
+$_lang['mc.admin']='Admin';
