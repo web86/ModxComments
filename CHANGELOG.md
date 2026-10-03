@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.0-rc1 — Security hardening
+- Restrict the manager CMP and moderation processors to sudo/Administrator users.
+- Validate MODX manager `HTTP_MODAUTH` in the custom manager connector.
+- Require POST for manager status/delete mutations.
+- Add a generated HMAC resource-signing key and bind public comment operations to resources where the snippet is rendered.
+- Reject the public `mgr` context and unpublished/deleted/non-viewable resources.
+- Add a 64 KiB JSON request-body limit.
+- Add HttpOnly + SameSite=Lax to guest ownership/vote cookies and Secure when HTTPS is active.
+- Neutralize untrusted MODX tag delimiters before processing email notification Chunks.
+- Strip CR/LF from notification subject and From-name header values.
+- Hide unexpected public exception details behind `server_error` while logging details server-side.
+- Escape resource titles in the manager grid.
+- Add PHP 7.4 and JavaScript syntax CI plus manual workflow dispatch.
+- Add SECURITY.md and update the public API security contract.
+
 ## 1.0.0-beta2 — Unified MODX 2.8 + MODX 3.0–3.2
 - Restore the entire legacy flat processor layer from the tested MODX 2 branch.
 - Fix MODX 2 manager CMP error caused by MODX 3 processor base classes leaking into `core/components/modxcomments/processors/`.
