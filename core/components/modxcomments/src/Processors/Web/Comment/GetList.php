@@ -24,7 +24,7 @@ class GetList extends Processor
             $perPage=(int)$this->getProperty('per_page',0);
             if($perPage<1) $perPage=null;
 
-            return $this->success('',$this->comments->getComments($resource,$context,$page,$perPage));
+            return $this->success('',$this->comments->getComments($resource,$context,$page,$perPage,(string)$this->getProperty('resource_token','')));
         }catch(\Throwable $e){
             return $this->failure($e->getMessage());
         }
