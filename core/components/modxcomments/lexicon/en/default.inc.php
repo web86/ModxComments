@@ -34,7 +34,7 @@ $_lang['setting_modxcomments.max_length']='Maximum comment length';
 $_lang['setting_modxcomments.max_length_desc']='Maximum number of characters allowed in a comment. Default: 5000.';
 
 $_lang['setting_modxcomments.edit_time']='Edit/delete window';
-$_lang['setting_modxcomments.edit_time_desc']='Number of seconds after posting during which an authenticated MODX web user may edit or delete their own comment. 900 seconds = 15 minutes. Guest comments are not editable in v0.2.';
+$_lang['setting_modxcomments.edit_time_desc']='Number of seconds after posting during which an author may edit or delete their own comment. Authenticated users are matched by user ID; guests are matched by a secure ownership cookie/hash. 900 seconds = 15 minutes.';
 
 $_lang['setting_modxcomments.rate_limit_count']='Rate-limit comment count';
 $_lang['setting_modxcomments.rate_limit_count_desc']='Maximum number of comments accepted from the same hashed IP during the rate-limit window. Default: 5.';
@@ -75,3 +75,7 @@ $_lang['modxcomments.admin']='Admin';
 $_lang['modxcomments.admin_reply']='Administrator reply';
 $_lang['modxcomments.reply_to']='Reply to';
 $_lang['modxcomments.thread_root']='Thread root';
+
+
+$_lang['setting_modxcomments.threads_per_page']='Root threads per page';
+$_lang['setting_modxcomments.threads_per_page_desc']='Number of root comment threads shown on one frontend page. All visible replies belonging to those roots are loaded together, so a reply tree is never split between pages. Default: 20.';
