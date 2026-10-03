@@ -74,17 +74,16 @@ foreach($settings as $key=>$spec){
     if(!$setting){
         $setting=$modx->newObject($settingClass);
         $setting->set('key',$fullKey);
+        $setting->set('value',$spec[0]);
+    }
 
-        if($key==='resource_signing_key'){
-            try{
-                $settingValue=bin2hex(random_bytes(32));
-            }catch(Exception $e){
-                $settingValue=hash('sha256',uniqid('',true).mt_rand());
-            }
-            $setting->set('value',$settingValue);
-        }else{
-            $setting->set('value',$spec[0]);
+    if($key==='resource_signing_key' && trim((string)$setting->get('value'))===''){
+        try{
+            $settingValue=bin2hex(random_bytes(32));
+        }catch(Exception $e){
+            $settingValue=hash('sha256',uniqid('',true).mt_rand());
         }
+        $setting->set('value',$settingValue);
     }
 
     $setting->set('xtype',$spec[1]);
