@@ -13,6 +13,8 @@
 - Hide unexpected public exception details behind `server_error` while logging details server-side.
 - Escape resource titles in the manager grid.
 - Add PHP 7.4 and JavaScript syntax CI plus manual workflow dispatch.
+- Validate signed resource routing before `ModxCommentsBeforeCommentCreate` and prevent hooks from redirecting resource/context.
+- Explicitly validate notification recipient addresses and Turnstile TLS certificates.
 - Add SECURITY.md and update the public API security contract.
 
 ## 1.0.0-beta2 — Unified MODX 2.8 + MODX 3.0–3.2
