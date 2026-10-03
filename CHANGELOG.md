@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0-beta14
+- Smooth-scroll to a newly submitted comment after the list refreshes.
+- Briefly highlight the submitted comment after autoscroll.
+- Render comment timestamps as localized relative time using Intl.RelativeTimeFormat.
+- Keep the exact server timestamp in the time element tooltip/datetime attribute.
+
 ## 0.2.0-beta13
 - Localize the entire frontend through the `modxcomments:frontend` lexicon (EN/RU).
 - Add guest ownership via a long-lived HttpOnly browser token; only its hash is stored with new guest comments.
