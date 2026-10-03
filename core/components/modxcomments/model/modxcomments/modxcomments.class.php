@@ -84,24 +84,57 @@ class ModxComments
 
     public function getCurrentUser()
     {
-        $authenticated = $this->modx->user
-            && $this->modx->context
-            && $this->modx->user->isAuthenticated($this->modx->context->key);
+        $user = null;
+        $source = '';
 
-        if (!$authenticated) {
-            return array('id' => 0, 'authenticated' => false, 'name' => '');
+        if (
+            $this->modx->user
+            && $this->modx->context
+            && $this->modx->user->isAuthenticated($this->modx->context->key)
+        ) {
+            $user = $this->modx->user;
+            $source = (string) $this->modx->context->key;
         }
 
-        $name = (string) $this->modx->user->get('username');
-        $profile = $this->modx->user->getOne('Profile');
+        // A manager login belongs to the "mgr" context and normally does not
+        // authenticate the same browser in "web". For trusted administrators,
+        // reuse the valid mgr session as a frontend identity.
+        if (!$user) {
+            $mgrUser = $this->modx->getAuthenticatedUser('mgr');
+            if (
+                $mgrUser
+                && (
+                    (bool) $mgrUser->get('sudo')
+                    || $mgrUser->isMember('Administrator')
+                )
+            ) {
+                $user = $mgrUser;
+                $source = 'mgr';
+            }
+        }
+
+        if (!$user) {
+            return array(
+                'id' => 0,
+                'authenticated' => false,
+                'name' => '',
+                'source' => '',
+                'managerAdmin' => false,
+            );
+        }
+
+        $name = (string) $user->get('username');
+        $profile = $user->getOne('Profile');
         if ($profile && trim((string) $profile->get('fullname')) !== '') {
             $name = trim((string) $profile->get('fullname'));
         }
 
         return array(
-            'id' => (int) $this->modx->user->get('id'),
+            'id' => (int) $user->get('id'),
             'authenticated' => true,
             'name' => $name,
+            'source' => $source,
+            'managerAdmin' => $source === 'mgr',
         );
     }
 
