@@ -1,7 +1,7 @@
 # Changelog
 
-## 1.0.0-beta1 — Unified MODX 2.8 + MODX 3
-- Combine the tested MODX 2 and MODX 3 runtime lines into one transport package.
+## 1.0.0-beta1 — Unified MODX 2.8 + MODX 3.0–3.2
+- Combine the tested MODX 2 and MODX 3.0–3.2 runtime lines into one transport package.
 - Add runtime service routing between MODX 2 and MODX 3 implementations.
 - Add dual public connector dispatch for flat MODX 2 processors and FQCN MODX 3 processors.
 - Add dual manager connector dispatch while keeping one manager JavaScript bundle.
