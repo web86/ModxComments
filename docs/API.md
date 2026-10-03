@@ -1,12 +1,34 @@
-# Public API contract — v0.2 beta13
+# Public API contract — 1.0.0-rc1
 
 Base URL: `/assets/components/modxcomments/connector.php`
 
-All responses use the standard MODX processor envelope.
+All routes are same-origin and return the standard MODX processor envelope.
+
+## Resource binding
+
+The cached `[[ModxComments]]` snippet renders a `resource_token` HMAC bound to:
+
+```text
+resource_id | context_key
+```
+
+The browser sends that token on all comment list/count/create/update/delete/vote requests. Requests with a missing or invalid token are rejected.
+
+The private signing key is stored in `modxcomments.resource_signing_key` and is never returned by the API.
+
+The public connector will not initialize the `mgr` context.
 
 ## GET web/init
 
-Returns CSRF, current user, public settings, CAPTCHA configuration and the frontend lexicon map (`i18n`).
+Returns:
+
+- component CSRF token;
+- current frontend user identity;
+- public settings;
+- CAPTCHA configuration;
+- frontend lexicon map.
+
+The signing secret is never included.
 
 ## GET web/comment/getlist
 
@@ -14,59 +36,85 @@ Parameters:
 
 - `resource`
 - `context`
-- `page` (root-thread page, default 1)
-- `per_page` (optional override, maximum 100)
+- `resource_token`
+- `page` — root-thread page, default 1
+- `per_page` — optional override, maximum 100
 
-Returns complete reply trees for the selected root-thread page:
+Only published/deleted resources that the current visitor may view are accepted.
 
-- `total` — number of published comments (replies included);
+Returns:
+
+- `total` — published comment count including replies;
 - `totalThreads`;
 - `comments`;
 - `pagination.page/pages/perPage/totalThreads`.
 
-Every comment can include `canReply`, `canEdit`, `canDelete`, `replyTo` and vote data.
+Public comment objects do not expose author email addresses.
 
 ## GET web/comment/count
 
-Returns the current number of published comments for a resource:
+Requires `resource`, `context` and `resource_token`.
 
-```json
-{"total":34}
-```
+Returns the published comment count for that resource.
 
 ## POST web/comment/create
 
-Requires `X-ModxComments-CSRF`.
+Requires:
 
-Guests require `author_name` and `author_email`. The hidden `website` field is a honeypot and must remain empty.
+- `X-ModxComments-CSRF`;
+- valid `resource_token`;
+- resource/context rendered by the snippet.
 
-New guest comments receive an HttpOnly ownership cookie. Only a one-way ownership hash is stored in the comment row.
+Guests require `author_name` and `author_email`. The hidden `website` field is a honeypot.
+
+Guest comment ownership uses a long random HttpOnly, SameSite=Lax cookie. Only a derived hash is stored with the comment.
 
 ## POST web/comment/update
 
-The comment owner only, within `modxcomments.edit_time`. Authenticated owners are matched by MODX user ID; new guest comments are matched by the ownership cookie/hash.
+Requires CSRF, a valid signed resource token and comment ownership. Editing is limited by `modxcomments.edit_time`.
 
-```json
-{"id":10,"content":"Updated text"}
-```
+Authenticated owners are matched by MODX user ID. Guest owners are matched by the ownership-cookie hash.
 
 ## POST web/comment/delete
 
-Same ownership/edit-window rules as update. Deletion is soft and descendants remain.
+Same CSRF, resource-token, ownership and edit-window requirements as update. Deletion is soft and descendants remain.
 
 ## POST web/comment/vote
 
-Requires CSRF.
+Requires CSRF and a valid signed resource token.
 
-```json
-{"id":10,"value":1}
-```
+`value=1` is 👍 and `value=-1` is 👎. Repeating the current vote removes it; voting the opposite value switches it.
 
-`1` is 👍 and `-1` is 👎. Repeating the same vote removes it; the opposite vote switches it.
+Guest votes are browser-identity based. Clearing the browser identity cookie can create a new voting identity; this is an abuse-control limitation rather than an authorization mechanism.
+
+## Manager API
+
+The manager connector is separate from the public connector.
+
+It requires:
+
+- an authenticated `mgr` session;
+- sudo or Administrator-group membership;
+- a valid MODX `HTTP_MODAUTH` token.
+
+Comment status and removal mutations accept POST only.
+
+## Content security
+
+Comment input is treated as plaintext. Arbitrary user HTML is escaped.
+
+Only:
+
+- plain `http://` / `https://` URLs; and
+- `[label](https://example.com)`
+
+are converted to links.
+
+Email notification Chunk placeholders neutralize MODX `[[...]]` delimiters from untrusted values before Chunk processing.
 
 ## Lifecycle events
 
-- `ModxCommentsBeforeCommentCreate` — receives mutable `data` by reference; returning boolean `false` cancels creation.
+- `ModxCommentsBeforeCommentCreate`
 - `ModxCommentsOnCommentCreate`
 - `ModxCommentsOnCommentUpdate`
 - `ModxCommentsOnCommentDelete`
