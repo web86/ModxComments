@@ -20,8 +20,13 @@ class ModxCommentsCommentCountProcessor extends modProcessor
             return $this->success('', array(
                 'total' => $this->comments->getCommentCount($resource, $context, (string) $this->getProperty('resource_token', '')),
             ));
-        } catch (Exception $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->failure($e->getMessage());
+        } catch (RuntimeException $e) {
+            return $this->failure($e->getMessage());
+        } catch (Throwable $e) {
+            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] Public API error: ' . $e->getMessage());
+            return $this->failure('server_error');
         }
     }
 }
