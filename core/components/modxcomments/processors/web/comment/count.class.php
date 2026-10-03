@@ -18,7 +18,7 @@ class ModxCommentsCommentCountProcessor extends modProcessor
             $context = $this->comments->cleanContextKey($this->getProperty('context', 'web'));
 
             return $this->success('', array(
-                'total' => $this->comments->getCommentCount($resource, $context),
+                'total' => $this->comments->getCommentCount($resource, $context, (string) $this->getProperty('resource_token', '')),
             ));
         } catch (Exception $e) {
             return $this->failure($e->getMessage());
