@@ -1,5 +1,8 @@
 <?php
-class ModxCommentsCommentGetListProcessor extends modProcessor
+use MODX\Revolution\Processors\Processor;
+use MODX\Revolution\modX;
+
+class ModxCommentsCommentGetListProcessor extends Processor
 {
     /** @var ModxComments */
     protected $comments;
