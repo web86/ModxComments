@@ -32,6 +32,8 @@ class ModxCommentsTurnstile
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
             ));
             $response = curl_exec($ch);
             curl_close($ch);
@@ -42,6 +44,10 @@ class ModxCommentsTurnstile
                     'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
                     'content' => $payload,
                     'timeout' => 10,
+                ),
+                'ssl' => array(
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
                 ),
             ));
             $response = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
