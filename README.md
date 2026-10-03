@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-beta2
+# ModxComments 1.0.0-rc1
 
 One transport package for **MODX Revolution 2.8.x and MODX 3.0–3.2.0–3.2**.
 
@@ -59,7 +59,7 @@ php _build/build.transport.php
 The resulting package is:
 
 ```text
-modxcomments-1.0.0-beta2
+modxcomments-1.0.0-rc1
 ```
 
 Install that same transport ZIP on either MODX 2.8 or MODX 3.0–3.2.
@@ -118,4 +118,20 @@ ModxCommentsOnCommentVote
 
 ### MODX 3.3 note
 
-This beta targets MODX 3.0–3.2. MODX currently loads deprecated global class aliases by default on that line, while their automatic loading is planned to stop in 3.3. The runtime itself already uses the MODX 3 namespaced model/processors; the universal transport vehicle should be revalidated before claiming MODX 3.3 support.
+This release candidate targets MODX 3.0–3.2. MODX currently loads deprecated global class aliases by default on that line, while their automatic loading is planned to stop in 3.3. The runtime itself already uses the MODX 3 namespaced model/processors; the universal transport vehicle should be revalidated before claiming MODX 3.3 support.
+
+
+## Security model
+
+- Public write actions require a same-session CSRF token.
+- Every public comments request is bound to the rendered resource/context with an HMAC `resource_token`.
+- The signing secret is generated automatically in `modxcomments.resource_signing_key`; do not expose it.
+- Public access is rejected for manager context and unpublished/deleted/non-viewable resources.
+- Guest edit ownership and guest voting use long random HttpOnly cookies with SameSite=Lax; only derived hashes are stored.
+- Comment content is escaped server-side; only safe HTTP(S) links and limited labeled-link syntax are rendered.
+- Email placeholder values have MODX tag delimiters neutralized before Chunk processing.
+- Manager CMP and manager processors are restricted to sudo/Administrator users and validate MODX `HTTP_MODAUTH`.
+- Moderation mutations use POST only.
+- Unexpected public exceptions are logged server-side and exposed only as `server_error`.
+
+For public sites, consider `guest_status=pending` and enabling Turnstile when abuse risk warrants it.
