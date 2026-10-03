@@ -35,7 +35,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','pl');
+$builder->createPackage('modxcomments','0.2.1','beta1');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject('modCategory');
@@ -113,9 +113,9 @@ $builder->setPackageAttributes(array(
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-pl\n- First stable MODX 2 release, promoted from the tested beta14 codebase.\n"
+        "ModxComments 0.2.1-beta1\n- First stable MODX 2 release, promoted from the tested beta14 codebase.\n"
     ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-pl transport package.\n";
+echo "Built ModxComments 0.2.1-beta1 transport package.\n";
