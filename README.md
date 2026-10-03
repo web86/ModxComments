@@ -1,70 +1,70 @@
-# ModxComments 0.3.0-beta8 — MODX 3
+# ModxComments 1.0.0-beta1
 
-This branch is the MODX Revolution 3 version of ModxComments.
+One transport package for **MODX Revolution 2.8.x and MODX 3.x**.
 
-It keeps the same frontend behavior and feature set as the MODX 2 `main` branch, including:
+ModxComments is a cache-safe, AJAX-first threaded comments Extra with a shared frontend and separate compatibility layers for xPDO 2 and xPDO 3.
 
-- threaded AJAX comments;
-- guest/authenticated posting;
-- guest ownership edit/delete token;
-- moderation and manager CMP;
-- voting;
+## Highlights
+
+- threaded comments with materialized paths;
+- guests and authenticated users;
+- manager-session recognition for sudo/Administrator users on the frontend;
+- frontend Admin badge with the current profile full name;
+- guest ownership token for edit/delete;
+- moderation statuses;
+- votes;
+- safe plaintext + HTTP(S) links;
+- emoji toolbar;
 - reply quotes;
-- honeypot + optional Turnstile;
+- Cloudflare Turnstile abstraction;
+- admin/reply email notifications via editable Chunks;
+- root-thread pagination and comment count API;
 - EN/RU frontend lexicon;
-- root-thread pagination and live comment count;
-- email notifications through editable MODX Chunks;
+- relative timestamps;
+- autoscroll/highlight after posting;
 - lifecycle events;
-- autoscroll to newly submitted comments;
-- localized relative timestamps.
+- manager CMP.
 
-## Requirements
+## Supported MODX lines
 
-- MODX Revolution 3.0+
-- PHP 7.4+
-- MySQL/MariaDB with InnoDB
-- JavaScript enabled
+```text
+MODX Revolution 2.8.x
+MODX Revolution 3.x
+```
 
-## MODX 3 architecture
+The runtime chooses the correct layer automatically:
 
-The MODX 3 branch differs internally from the MODX 2 branch:
+```text
+MODX 2 -> legacy flat processors + xPDO 2 model
+MODX 3 -> FQCN processors + xPDO 3 namespaced model
+```
 
-- bootstraps through `core/vendor/autoload.php`;
-- uses `MODX\Revolution\modX`;
-- uses namespaced MODX 3 processors/controllers;
-- uses an xPDO 3 model package `ModxComments\Model`;
-- generated model classes live under `core/components/modxcomments/src/`;
-- schema extends `xPDO\Om\xPDOObject` / `xPDOSimpleObject`;
-- transport package declares `modx >= 3.0.0`.
-
-Database table names remain compatible with the MODX 2 version:
+The same database tables are used on both versions:
 
 ```text
 modxcomments_comments
 modxcomments_votes
 ```
 
-## Build
+## Universal package build
 
-Run from the MODX 3 site root:
+Build the universal transport on a **MODX 2.8.x installation**:
 
 ```bash
-git checkout modx3
+git checkout unified
 git pull
 php _build/build.transport.php
 ```
 
-The package signature is:
+The resulting package is:
 
 ```text
-modxcomments-0.3.0-beta8
+modxcomments-1.0.0-beta1
 ```
 
-For development model generation only:
+Install that same transport ZIP on either MODX 2.8 or MODX 3.
 
-```bash
-php _build/build.schema.php
-```
+The universal build intentionally uses a MODX 2-shaped transport vehicle while shipping both runtime layers. This avoids putting MODX 3-only class names into a package that must also install on MODX 2.
 
 ## Usage
 
@@ -74,23 +74,18 @@ Use the cached snippet call:
 [[ModxComments]]
 ```
 
-Live comments are loaded separately over AJAX, so the resource itself can remain cached.
+Comments themselves are loaded over the public AJAX connector, so the resource may remain cached.
 
-## Settings
+## Admin identity on the frontend
 
-The MODX 3 version uses the same `modxcomments.*` system settings as the MODX 2 branch, including:
+Normal web-context authentication has priority.
 
-```text
-modxcomments.allow_guests = 1
-modxcomments.max_depth = 5
-modxcomments.max_length = 5000
-modxcomments.edit_time = 900
-modxcomments.guest_status = published
-modxcomments.user_status = published
-modxcomments.threads_per_page = 20
-modxcomments.notify_admin = 0
-modxcomments.notify_replies = 0
-```
+If the browser is not logged into the frontend but has a valid `mgr` session, ModxComments also recognizes the manager user when that account is:
+
+- `sudo`; or
+- a member of the `Administrator` group.
+
+Admin-authored comments expose the current MODX profile full name and render with a frontend `★ Admin` badge.
 
 ## Email Chunks
 
@@ -100,6 +95,8 @@ ModxCommentsEmailAdminBody
 ModxCommentsEmailReplySubject
 ModxCommentsEmailReplyBody
 ```
+
+Existing edited Chunks are preserved during upgrades.
 
 ## Events
 
@@ -112,4 +109,8 @@ ModxCommentsOnCommentPublish
 ModxCommentsOnCommentVote
 ```
 
-The MODX 2 line continues separately on `main`.
+## Development branches
+
+- `main` — MODX 2 reference line.
+- `modx3` — MODX 3 reference line.
+- `unified` — combined package and the intended forward path after validation.
