@@ -18,6 +18,7 @@
       this.deletingId = 0;
       this.captchaToken = '';
       this.turnstileWidget = null;
+      this.relativeFormatter = null;
       this.page = 1;
       this.total = 0;
       this.pagination = { page: 1, pages: 1, perPage: 20, totalThreads: 0 };
@@ -39,6 +40,7 @@
         this.user = init.user;
         this.settings = init.settings || this.settings;
         this.i18n = init.i18n || {};
+        this.initRelativeTime();
 
         this.renderShell();
         this.bindShellEvents();
@@ -423,7 +425,7 @@
           <span class="mc-avatar" aria-hidden="true">${initial}</span>
           <span class="mc-author">${this.escape(comment.author.name || guest)}</span>
           <a class="mc-permalink" href="#comment-${id}" title="${this.escape(this.t('permalink', { id }, `Permalink to comment #${id}`))}">#${id}</a>
-          <time>${this.escape(comment.created)}</time>
+          <time datetime="${this.escape(comment.created)}" title="${this.escape(comment.created)}">${this.escape(this.relativeTime(comment.createdTs, comment.created))}</time>
           ${comment.localPending && comment.status === 'pending' ? `<span class="mc-pending-badge">${this.escape(this.t('pending', {}, 'Pending'))}</span>` : ''}
           ${comment.edited ? `<span class="mc-edited">${this.escape(this.t('edited', {}, 'edited'))}</span>` : ''}
         </header>
@@ -563,6 +565,9 @@
         }
 
         await this.reload();
+        if (created.comment && created.comment.id) {
+          this.scrollToComment(Number(created.comment.id));
+        }
         this.showStatus(
           created.comment && created.comment.status === 'pending'
             ? this.t('submitted_pending', {}, 'Comment submitted and is awaiting moderation.')
@@ -661,6 +666,53 @@
         page: this.page
       });
       this.applyList(list);
+    }
+
+    initRelativeTime() {
+      if (!window.Intl || typeof Intl.RelativeTimeFormat !== 'function') return;
+
+      try {
+        this.relativeFormatter = new Intl.RelativeTimeFormat(
+          this.settings.locale || document.documentElement.lang || 'en',
+          { numeric: 'auto' }
+        );
+      } catch (error) {
+        this.relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+      }
+    }
+
+    relativeTime(timestamp, fallback) {
+      const ts = Number(timestamp || 0);
+      if (!ts || !this.relativeFormatter) return fallback || '';
+
+      const seconds = Math.round(ts - (Date.now() / 1000));
+      const absolute = Math.abs(seconds);
+      let value = seconds;
+      let unit = 'second';
+
+      if (absolute >= 86400) {
+        value = Math.round(seconds / 86400);
+        unit = 'day';
+      } else if (absolute >= 3600) {
+        value = Math.round(seconds / 3600);
+        unit = 'hour';
+      } else if (absolute >= 60) {
+        value = Math.round(seconds / 60);
+        unit = 'minute';
+      }
+
+      return this.relativeFormatter.format(value, unit);
+    }
+
+    scrollToComment(id) {
+      const element = this.root.querySelector('#comment-' + Number(id));
+      if (!element) return;
+
+      requestAnimationFrame(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('is-new-comment');
+        window.setTimeout(() => element.classList.remove('is-new-comment'), 2400);
+      });
     }
 
     async initCaptcha() {
