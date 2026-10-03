@@ -215,7 +215,8 @@ class ModxComments
             'csrf_invalid','authentication_required','content_required','content_too_long',
             'author_name_required','author_name_too_long','author_email_required',
             'author_email_invalid','rate_limit_exceeded','captcha_failed','spam_detected',
-            'permission_denied','edit_window_expired','comment_not_found','vote_invalid'
+            'permission_denied','edit_window_expired','comment_not_found','vote_invalid',
+            'comment_create_cancelled'
         ) as $errorKey) {
             $strings['error.' . $errorKey] = $this->modx->lexicon('mc.error.' . $errorKey);
         }
