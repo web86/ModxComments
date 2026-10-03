@@ -93,10 +93,17 @@ try{
         throw new RuntimeException('Processor returned no response: '.$route['class']);
     }
 
-    echo json_encode(
-        $response->getResponse(),
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-    );
+    $payload=$response->getResponse();
+
+    if(is_string($payload)){
+        // GetListProcessor::outputArray() already returns JSON.
+        echo $payload;
+    }else{
+        echo json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
 }catch(Throwable $e){
     $message='[ModxComments] Manager connector fatal: '
         .get_class($e).': '.$e->getMessage()
