@@ -603,3 +603,22 @@
     box-shadow: 0 0 0 4px rgba(47, 111, 237, .16), var(--mc-shadow);
   }
 }
+
+
+/* Admin-authored frontend comments */
+.mc-admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: .72em;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.mc-comment-header:has(.mc-admin-badge) .mc-author {
+  font-weight: 700;
+}
