@@ -22,14 +22,28 @@ if($isModx3){
 $input=$_REQUEST;
 $contentType=isset($_SERVER['CONTENT_TYPE'])?strtolower((string)$_SERVER['CONTENT_TYPE']):'';
 if(strpos($contentType,'application/json')!==false){
-    $json=json_decode(file_get_contents('php://input'),true);
+    $contentLength=isset($_SERVER['CONTENT_LENGTH'])?(int)$_SERVER['CONTENT_LENGTH']:0;
+    if($contentLength>65536){
+        http_response_code(413);
+        echo json_encode(array('success'=>false,'message'=>'request_too_large','object'=>array()));
+        exit;
+    }
+
+    $raw=file_get_contents('php://input');
+    if(strlen($raw)>65536){
+        http_response_code(413);
+        echo json_encode(array('success'=>false,'message'=>'request_too_large','object'=>array()));
+        exit;
+    }
+
+    $json=json_decode($raw,true);
     if(is_array($json)) $input=array_merge($input,$json);
 }
 
 $context=isset($input['context'])
     ? preg_replace('/[^a-zA-Z0-9_-]/','',(string)$input['context'])
     : 'web';
-if($context==='') $context='web';
+if($context==='' || strtolower($context)==='mgr') $context='web';
 
 if($isModx3){
     $modx=\MODX\Revolution\modX::getInstance(null,array(
