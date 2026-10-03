@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-beta2 — installation
+# ModxComments 1.0.0-rc1 — installation
 
 ## Compatibility
 
@@ -20,7 +20,7 @@ php _build/build.transport.php
 Output:
 
 ```text
-modxcomments-1.0.0-beta2
+modxcomments-1.0.0-rc1
 ```
 
 Use the **same ZIP** on MODX 2 or MODX 3.0–3.2.
@@ -109,3 +109,12 @@ User changes to these Chunks are preserved during upgrades.
 ## Uninstall
 
 Component registration, settings and menu are removed. Comment tables/data are intentionally preserved.
+
+
+## Security notes
+
+`modxcomments.resource_signing_key` is generated automatically and is used only to sign the resource/context rendered by the snippet. Do not publish or routinely rotate it; changing it invalidates cached comment widgets until those pages are regenerated.
+
+The manager comments CMP is intentionally limited to sudo users and members of the Administrator group in this release candidate.
+
+After upgrading from an earlier beta, clear the MODX resource cache so pages contain the new signed resource token.
