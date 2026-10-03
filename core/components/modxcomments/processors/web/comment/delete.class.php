@@ -20,7 +20,10 @@ class ModxCommentsCommentDeleteProcessor extends modProcessor
         if (!$this->comments->validateCsrfToken($token)) return $this->failure('csrf_invalid');
 
         try {
-            return $this->success('', array('comment' => $this->comments->deleteComment((int) $this->getProperty('id', 0))));
+            return $this->success('', array('comment' => $this->comments->deleteComment(
+            (int) $this->getProperty('id', 0),
+            (string) $this->getProperty('resource_token', '')
+        )));
         } catch (InvalidArgumentException $e) {
             return $this->failure($e->getMessage());
         } catch (RuntimeException $e) {
