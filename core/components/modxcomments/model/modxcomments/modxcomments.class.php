@@ -3,6 +3,7 @@ use MODX\Revolution\modX;
 use MODX\Revolution\modResource;
 use MODX\Revolution\modChunk;
 use MODX\Revolution\Mail\modMail;
+use MODX\Revolution\Mail\modPHPMailer;
 use ModxComments\Model\Comment;
 use ModxComments\Model\Vote;
 
@@ -548,7 +549,7 @@ class ModxComments
     protected function sendMail($to, $subject, $body)
     {
         try {
-            $mail = $this->modx->getService('mail', 'mail.modPHPMailer');
+            $mail = $this->modx->getService('mail', modPHPMailer::class);
             if (!$mail) {
                 $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] MODX mail service is unavailable.');
                 return false;
