@@ -85,6 +85,7 @@ modxcomments.threads_per_page = 20
 ```text
 GET  web/init
 GET  web/comment/getlist
+GET  web/comment/count
 POST web/comment/create
 POST web/comment/update
 POST web/comment/delete
@@ -99,9 +100,12 @@ After a transport-package install, open **Extras → Comments**. v0.2 supports s
 ## Events
 
 ```text
+ModxCommentsBeforeCommentCreate
 ModxCommentsOnCommentCreate
 ModxCommentsOnCommentUpdate
 ModxCommentsOnCommentDelete
+ModxCommentsOnCommentPublish
+ModxCommentsOnCommentVote
 ```
 
 Frontend and manager UI received the first full visual/interaction pass in beta4.
