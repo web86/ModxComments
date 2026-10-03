@@ -40,7 +40,14 @@ ModxComments.grid.Comments=function(config){
         autoHeight:true,
         columns:[
             {header:'ID',dataIndex:'id',width:55,fixed:true},
-            {header:_('modxcomments.resource'),dataIndex:'resource_title',width:180},
+            {
+                header:_('modxcomments.resource'),
+                dataIndex:'resource_title',
+                width:180,
+                renderer:function(value){
+                    return Ext.util.Format.htmlEncode(value||'');
+                }
+            },
             {
                 header:_('modxcomments.author'),
                 dataIndex:'author_name',
@@ -198,6 +205,7 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
     setStatus:function(id,status){
         MODx.Ajax.request({
             url:ModxComments.config.connectorUrl,
+            method:'POST',
             params:{
                 action:'ModxComments\\Processors\\Mgr\\Comment\\Status',
                 id:id,
