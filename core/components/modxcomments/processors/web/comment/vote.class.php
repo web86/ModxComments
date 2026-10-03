@@ -1,8 +1,5 @@
 <?php
-use MODX\Revolution\Processors\Processor;
-use MODX\Revolution\modX;
-
-class ModxCommentsCommentVoteProcessor extends Processor
+class ModxCommentsCommentVoteProcessor extends modProcessor
 {
     protected $comments;
 
