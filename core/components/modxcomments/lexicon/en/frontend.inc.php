@@ -65,3 +65,6 @@ $_lang['mc.error.vote_invalid']='Invalid vote.';
 $_lang['mc.error.comment_create_cancelled']='Comment submission was cancelled.';
 
 $_lang['mc.admin']='Admin';
+
+$_lang['mc.error.resource_token_invalid']='This comments form is no longer valid. Reload the page and try again.';
+$_lang['mc.error.server_error']='A server error occurred. Please try again later.';
