@@ -95,7 +95,9 @@ try{
 
     echo $response->toJSON();
 }catch(Throwable $e){
-    $message='[ModxComments] Manager connector fatal: '.get_class($e).': '.$e->getMessage();
+    $message='[ModxComments] Manager connector fatal: '
+        .get_class($e).': '.$e->getMessage()
+        .' in '.$e->getFile().':'.$e->getLine();
     $modx->log(modX::LOG_LEVEL_ERROR,$message);
 
     http_response_code(500);
