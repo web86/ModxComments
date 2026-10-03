@@ -1,75 +1,101 @@
-# ModxComments — MODX 3 installation / upgrade
+# ModxComments 1.0.0-beta1 — installation
 
-## Requirements
+## Compatibility
 
-- MODX Revolution 3.0+
-- PHP 7.4+
-- MySQL/MariaDB with InnoDB
+The same transport package supports:
 
-## Install
+- MODX Revolution 2.8.x
+- MODX Revolution 3.x
 
-1. Build or download the MODX 3 transport package `modxcomments-0.3.0-beta8`.
-2. Install it through Package Management.
-3. Clear the MODX cache.
-4. Add the cached snippet call:
+## Building the universal transport
+
+Build on MODX 2.8.x:
+
+```bash
+git checkout unified
+git pull
+php _build/build.transport.php
+```
+
+Output:
+
+```text
+modxcomments-1.0.0-beta1
+```
+
+Use the **same ZIP** on MODX 2 or MODX 3.
+
+## Install / upgrade
+
+1. Install the transport through Package Management.
+2. Clear the MODX cache.
+3. Add the cached snippet call:
 
 ```modx
 [[ModxComments]]
 ```
 
-## Model
+Existing `modxcomments_comments` and `modxcomments_votes` data are preserved during upgrades.
 
-The MODX 3 branch uses xPDO 3 namespaced classes under:
+## Runtime compatibility
 
-```text
-ModxComments\Model
-```
-
-The package builder generates them into:
+The package ships both models:
 
 ```text
-core/components/modxcomments/src/
+MODX 2:
+core/components/modxcomments/model/modxcomments/
+
+MODX 3:
+core/components/modxcomments/src/Model/
 ```
 
-## Database compatibility
-
-The same table names are used as in MODX 2:
+And both processor styles:
 
 ```text
-modxcomments_comments
-modxcomments_votes
+MODX 2:
+core/components/modxcomments/processors/
+
+MODX 3:
+core/components/modxcomments/src/Processors/
 ```
 
-Existing comment data can therefore be retained when migrating the site itself from MODX 2 to MODX 3.
+The public and manager connectors choose the correct implementation automatically.
 
-## Moderation
+## Manager login on the frontend
+
+When no normal web-context login exists, a valid manager session is accepted for frontend commenting only when the manager user is sudo or belongs to Administrator.
+
+The comment is saved with that MODX user ID and current profile information.
+
+## Frontend Admin badge
+
+Comments belonging to a current sudo/Administrator user are rendered with:
 
 ```text
-modxcomments.guest_status = pending
-modxcomments.user_status = pending
+★ Admin  Full Name
 ```
 
-Manager moderation is available under **Extras → Comments**.
+The displayed name comes from the user's current profile fullname, falling back to username.
 
-## Guest editing
-
-New guest comments use an HttpOnly ownership cookie with only its hash stored in the database. The same browser can edit/delete its comment during `modxcomments.edit_time`.
-
-## Frontend pagination
-
-`modxcomments.threads_per_page` controls root threads per page.
-
-## Email notifications
-
-Optional settings:
+## Settings
 
 ```text
-modxcomments.notify_admin = 1
-modxcomments.notify_admin_email =
-modxcomments.notify_replies = 1
+modxcomments.allow_guests = 1
+modxcomments.max_depth = 5
+modxcomments.max_length = 5000
+modxcomments.edit_time = 900
+modxcomments.rate_limit_count = 5
+modxcomments.rate_limit_window = 60
+modxcomments.guest_status = published
+modxcomments.user_status = published
+modxcomments.threads_per_page = 20
+modxcomments.turnstile_enabled = 0
+modxcomments.turnstile_guests_only = 1
+modxcomments.notify_admin = 0
+modxcomments.notify_replies = 0
 ```
 
-Mail uses the normal MODX mail configuration.
+## Email templates
 
 Editable Chunks:
 
@@ -78,6 +104,8 @@ Editable Chunks:
 - `ModxCommentsEmailReplySubject`
 - `ModxCommentsEmailReplyBody`
 
-## Upgrade / uninstall
+User changes to these Chunks are preserved during upgrades.
 
-Upgrades preserve comments and user-edited notification Chunks. Uninstall removes component registration/settings/menu but intentionally leaves comment tables/data.
+## Uninstall
+
+Component registration, settings and menu are removed. Comment tables/data are intentionally preserved.
