@@ -28,9 +28,9 @@ if($action===xPDOTransport::ACTION_UNINSTALL){
 }
 
 $corePath=MODX_CORE_PATH.'components/modxcomments/';
-$modelPath=$corePath.'model/';
+$modelPath=$corePath.'src/';
 
-$namespace=$modx->getObject('modNamespace','modxcomments');
+$namespace=$modx->getObject(modNamespace::class,'modxcomments');
 if(!$namespace){
     $namespace=$modx->newObject(modNamespace::class);
     $namespace->set('name','modxcomments');
@@ -94,7 +94,7 @@ $votesTable=$prefix.'modxcomments_votes';
 
 /*
  * Do not call addPackage() here. On a clean MODX install this PHP resolver can
- * run before the file resolver has made core/components/modxcomments/model/
+ * run before the file resolver has made core/components/modxcomments/src/
  * available. Create/migrate the component tables directly; the generated xPDO
  * model files are available later during normal runtime.
  */
