@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-beta4 — MODX 3
+- Replace manager connector request handling with a direct, explicit processor dispatcher.
+- Whitelist manager actions and map them to concrete processor files/classes.
+- Explicitly register and verify the MODX 3 model before processor execution.
+- Catch all PHP Throwables in the manager connector and return/log the exact error instead of a silent HTTP 500.
+- Keep compatibility aliases for both legacy manager action names and FQCN actions.
+
 ## 0.3.0-beta3 — MODX 3
 - Move MODX 3 runtime processors to namespaced classes under `src/Processors`.
 - Make the manager grid call processor FQCNs, matching the standard MODX 3 Extra pattern.
