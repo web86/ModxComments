@@ -225,13 +225,6 @@ class ModxComments
 
     public function createComment(array $data)
     {
-        $resourceId = isset($data['resource']) ? (int) $data['resource'] : 0;
-        $contextKey = isset($data['context']) ? $this->cleanContextKey($data['context']) : 'web';
-        $parentId = isset($data['parent']) ? (int) $data['parent'] : 0;
-        $content = isset($data['content']) ? trim((string) $data['content']) : '';
-
-        $this->assertResource($resourceId, $contextKey);
-
         $beforeResults = $this->modx->invokeEvent('ModxCommentsBeforeCommentCreate', array(
             'data' => &$data,
             'service' => $this,
@@ -240,6 +233,12 @@ class ModxComments
             throw new RuntimeException('comment_create_cancelled');
         }
 
+        $resourceId = isset($data['resource']) ? (int) $data['resource'] : 0;
+        $contextKey = isset($data['context']) ? $this->cleanContextKey($data['context']) : 'web';
+        $parentId = isset($data['parent']) ? (int) $data['parent'] : 0;
+        $content = isset($data['content']) ? trim((string) $data['content']) : '';
+
+        $this->assertResource($resourceId, $contextKey);
         $this->assertCanCreate();
         $this->assertHoneypot($data);
         $this->assertContent($content);
