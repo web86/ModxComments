@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.0-beta1 — Unified MODX 2.8 + MODX 3
+- Combine the tested MODX 2 and MODX 3 runtime lines into one transport package.
+- Add runtime service routing between MODX 2 and MODX 3 implementations.
+- Add dual public connector dispatch for flat MODX 2 processors and FQCN MODX 3 processors.
+- Add dual manager connector dispatch while keeping one manager JavaScript bundle.
+- Add a runtime-compatible manager controller base.
+- Commit both xPDO 2 and xPDO 3 model metadata so normal package builds do not generate runtime model PHP.
+- Add a version-neutral installer resolver for namespace, settings, menu, tables, migrations and events.
+- Recognize valid manager sudo/Administrator sessions on the frontend for both MODX 2 and MODX 3.
+- Mark admin-authored frontend comments with a `★ Admin` badge.
+- Resolve the displayed admin author name from the current MODX profile fullname, falling back to username.
+- Keep the same comment/vote tables across both MODX versions.
+- Universal transport is built on MODX 2.8 and installed unchanged on either supported MODX line.
+
 ## 0.3.0-beta8 — MODX 3
 - Recognize an authenticated MODX manager administrator on the frontend when there is no separate web-context login.
 - Use the valid `mgr` session only for sudo users or members of the Administrator group.
