@@ -1,0 +1,24 @@
+name: ModxComments CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  php74-lint:
+    runs-on: ubuntu-latest
+    container: php:7.4-cli
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint PHP
+        run: |
+          find core assets _build -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  javascript-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check frontend JavaScript
+        run: node --check assets/components/modxcomments/js/comments.js
+      - name: Check manager JavaScript
+        run: node --check assets/components/modxcomments/mgr/js/mgr.js
