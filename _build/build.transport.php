@@ -53,6 +53,23 @@ $snippet->fromArray(array(
 ),'',true,true);
 $category->addMany($snippet);
 
+$emailChunks=array(
+    'ModxCommentsEmailAdminSubject'=>'email.admin.subject.tpl',
+    'ModxCommentsEmailAdminBody'=>'email.admin.body.tpl',
+    'ModxCommentsEmailReplySubject'=>'email.reply.subject.tpl',
+    'ModxCommentsEmailReplyBody'=>'email.reply.body.tpl',
+);
+
+foreach($emailChunks as $chunkName=>$chunkFile){
+    $chunk=$modx->newObject('modChunk');
+    $chunk->fromArray(array(
+        'name'=>$chunkName,
+        'description'=>'ModxComments email notification template.',
+        'snippet'=>file_get_contents($root.'/core/components/modxcomments/elements/chunks/'.$chunkFile),
+    ),'',true,true);
+    $category->addMany($chunk);
+}
+
 $vehicle=$builder->createVehicle($category,array(
     xPDOTransport::PRESERVE_KEYS=>false,
     xPDOTransport::UPDATE_OBJECT=>true,
@@ -62,6 +79,11 @@ $vehicle=$builder->createVehicle($category,array(
         'Snippets'=>array(
             xPDOTransport::PRESERVE_KEYS=>false,
             xPDOTransport::UPDATE_OBJECT=>true,
+            xPDOTransport::UNIQUE_KEY=>'name',
+        ),
+        'Chunks'=>array(
+            xPDOTransport::PRESERVE_KEYS=>false,
+            xPDOTransport::UPDATE_OBJECT=>false,
             xPDOTransport::UNIQUE_KEY=>'name',
         ),
     ),
