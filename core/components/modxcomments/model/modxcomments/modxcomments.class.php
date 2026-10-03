@@ -64,6 +64,7 @@ class ModxComments
             'maxLength' => (int) $this->config['maxLength'],
             'editTime' => (int) $this->config['editTime'],
             'threadsPerPage' => max(1, (int) $this->config['threadsPerPage']),
+            'locale' => (string) $this->modx->getOption('cultureKey', null, 'en'),
             'guestEmailRequired' => true,
             'captcha' => array(
                 'enabled' => $this->shouldUseTurnstile($user),
@@ -893,6 +894,7 @@ class ModxComments
             'replyTo' => $replyTo,
             'votes' => $deleted ? array('up' => 0, 'down' => 0, 'score' => 0, 'mine' => 0) : $this->getVoteSummary((int) $comment->get('id')),
             'created' => (string) $comment->get('createdon'),
+            'createdTs' => (int) strtotime((string) $comment->get('createdon')),
             'edited' => (bool) $comment->get('editedon'),
             'canReply' => !$deleted && ((int) $comment->get('depth') < (int) $this->config['maxDepth']),
             'canEdit' => $editable,
