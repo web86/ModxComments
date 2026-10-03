@@ -1,13 +1,15 @@
 <?php
 /**
- * MODX 3 namespace bootstrap.
+ * Namespace bootstrap for the unified package.
  *
- * @var \MODX\Revolution\modX $modx
- * @var array $namespace
+ * MODX 3 uses this to register the namespaced xPDO model.
+ * MODX 2 keeps using the legacy model package.
  */
-$modx->addPackage(
-    'ModxComments\\Model',
-    $namespace['path'].'src/',
-    null,
-    'ModxComments\\'
-);
+if(class_exists('MODX\\Revolution\\modX')){
+    $modx->addPackage(
+        'ModxComments\\Model',
+        $namespace['path'].'src/',
+        null,
+        'ModxComments\\'
+    );
+}
