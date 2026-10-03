@@ -1,74 +1,83 @@
-# ModxComments — installation / upgrade
+# ModxComments — MODX 3 installation / upgrade
 
 ## Requirements
 
-- MODX Revolution 2.8.x
-- PHP supported by your MODX installation
+- MODX Revolution 3.0+
+- PHP 7.4+
 - MySQL/MariaDB with InnoDB
-- JavaScript enabled in the browser
 
 ## Install
 
-1. Install the transport package from **Extras → Installer / Package Management**.
-2. Clear the MODX cache after installation.
-3. Add the cached snippet call to the required resource/template:
+1. Build or download the MODX 3 transport package `modxcomments-0.3.0-beta1`.
+2. Install it through Package Management.
+3. Clear the MODX cache.
+4. Add the cached snippet call:
 
 ```modx
 [[ModxComments]]
 ```
 
-Do not use the uncached `[[!ModxComments]]` call. Comment data is loaded over AJAX and is intentionally independent from the resource cache.
+## Model
+
+The MODX 3 branch uses xPDO 3 namespaced classes under:
+
+```text
+ModxComments\Model
+```
+
+The package builder generates them into:
+
+```text
+core/components/modxcomments/src/
+```
+
+## Database compatibility
+
+The same table names are used as in MODX 2:
+
+```text
+modxcomments_comments
+modxcomments_votes
+```
+
+Existing comment data can therefore be retained when migrating the site itself from MODX 2 to MODX 3.
 
 ## Moderation
 
-For guest comments to require approval:
-
 ```text
 modxcomments.guest_status = pending
-```
-
-For authenticated web-user comments to require approval too:
-
-```text
 modxcomments.user_status = pending
 ```
 
-Moderation is available under **Extras → Comments**.
-
-## Email notifications
-
-Notifications are disabled by default.
-
-- `modxcomments.notify_admin = 1` — notify the administrator about each new comment.
-- `modxcomments.notify_admin_email` — recipient address; when empty, MODX `emailsender` is used.
-- `modxcomments.notify_replies = 1` — notify the author of the parent comment when a reply becomes published.
-
-Mail delivery uses the normal MODX mail/SMTP configuration.
-
-## Upgrade
-
-Install a newer transport package over the previous beta. Comment data is preserved. The installer performs required ModxComments-only schema/charset migrations.
-
-## Uninstall
-
-Uninstall removes the component registration, settings and manager menu, but intentionally preserves comment tables/data.
-
-
-## Frontend pagination
-
-`modxcomments.threads_per_page` controls how many root comment threads appear per page (default: 20). Replies for each selected root are loaded together, so a thread is never split between pages.
+Manager moderation is available under **Extras → Comments**.
 
 ## Guest editing
 
-New guest comments receive an HttpOnly ownership cookie. During `modxcomments.edit_time`, that same browser can edit/delete its own guest comments. Comments created before beta13 do not have an ownership hash and therefore remain non-editable for guests.
+New guest comments use an HttpOnly ownership cookie with only its hash stored in the database. The same browser can edit/delete its comment during `modxcomments.edit_time`.
 
-## Email templates
+## Frontend pagination
 
-The package installs these editable Chunks:
+`modxcomments.threads_per_page` controls root threads per page.
+
+## Email notifications
+
+Optional settings:
+
+```text
+modxcomments.notify_admin = 1
+modxcomments.notify_admin_email =
+modxcomments.notify_replies = 1
+```
+
+Mail uses the normal MODX mail configuration.
+
+Editable Chunks:
 
 - `ModxCommentsEmailAdminSubject`
 - `ModxCommentsEmailAdminBody`
 - `ModxCommentsEmailReplySubject`
 - `ModxCommentsEmailReplyBody`
 
-Existing Chunks with these names are preserved during upgrades.
+## Upgrade / uninstall
+
+Upgrades preserve comments and user-edited notification Chunks. Uninstall removes component registration/settings/menu but intentionally leaves comment tables/data.
