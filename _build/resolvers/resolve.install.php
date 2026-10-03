@@ -46,6 +46,7 @@ $settings=array(
  'notify_admin'=>array('0','combo-boolean'),
  'notify_admin_email'=>array('','textfield'),
  'notify_replies'=>array('0','combo-boolean'),
+ 'threads_per_page'=>array('20','numberfield'),
 );
 
 foreach($settings as $key=>$spec){
@@ -104,6 +105,7 @@ try{
         .'depth TINYINT(3) UNSIGNED NOT NULL DEFAULT 0,'
         .'path VARCHAR(255) NOT NULL DEFAULT "",'
         .'user_id INT(10) UNSIGNED NOT NULL DEFAULT 0,'
+        .'guest_owner_hash CHAR(64) NOT NULL DEFAULT "",'
         .'author_name VARCHAR(190) NOT NULL DEFAULT "",'
         .'author_email VARCHAR(254) NOT NULL DEFAULT "",'
         .'content TEXT NOT NULL,'
@@ -147,6 +149,16 @@ foreach(array($commentsTable,$votesTable) as $tableName){
     }catch(Exception $e){
         $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] utf8mb4 migration failed for '.$tableName.': '.$e->getMessage());
     }
+}
+
+try{
+    $statement=$modx->query('SHOW COLUMNS FROM '.$commentsTable.' LIKE "guest_owner_hash"');
+    $hasGuestOwner=$statement && $statement->fetch(PDO::FETCH_ASSOC);
+    if(!$hasGuestOwner){
+        $modx->exec('ALTER TABLE '.$commentsTable.' ADD COLUMN guest_owner_hash CHAR(64) NOT NULL DEFAULT "" AFTER user_id');
+    }
+}catch(Exception $e){
+    $modx->log(modX::LOG_LEVEL_ERROR,'[ModxComments] guest_owner_hash migration failed: '.$e->getMessage());
 }
 
 try{
