@@ -142,10 +142,10 @@ $builder->setPackageAttributes(array(
     ),
     'requires'=>array(
         'php'=>'>=7.4.0',
-        'modx'=>'>=2.8.0',
+        'modx'=>'>=2.8.0,<3.3.0',
     ),
 ));
 
 $builder->pack();
 
-echo "Built universal ModxComments 1.0.0-beta1 transport package for MODX 2.8 + 3.x.\n";
+echo "Built universal ModxComments 1.0.0-beta1 transport package for MODX 2.8 + MODX 3.0-3.2.\n";
