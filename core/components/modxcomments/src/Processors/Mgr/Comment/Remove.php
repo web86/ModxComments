@@ -8,6 +8,15 @@ class Remove extends Processor
 {
     public function process()
     {
+        if (
+            !$this->modx->user
+            || !(
+                (bool) $this->modx->user->get('sudo')
+                || $this->modx->user->isMember('Administrator')
+            )
+        ) {
+            return $this->failure('access_denied');
+        }
         $id=(int)$this->getProperty('id',0);
         $comment=$this->modx->getObject(Comment::class,$id);
         if(!$comment) return $this->failure('comment_not_found');
