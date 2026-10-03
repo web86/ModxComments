@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0-beta1 — MODX 3
+- Create a dedicated MODX 3 branch from the MODX 2 beta14 feature set.
+- Bootstrap through MODX 3 vendor autoload and `MODX\Revolution\modX::getInstance()`.
+- Convert the xPDO schema to xPDO 3 namespaced model classes.
+- Generate `ModxComments\Model\Comment` and `Vote` under `src/`.
+- Convert public and manager processors to MODX 3 namespaced processor bases.
+- Convert the manager controller and installer resolver to MODX 3 class names.
+- Add namespace bootstrap for the xPDO 3 model.
+- Build a separate `modxcomments-0.3.0-beta1` transport requiring MODX 3.
+- Remove the MODX 2 deprecated manager fallback from this branch.
+- Keep beta14 autoscroll and localized relative timestamps.
+
 ## 0.2.0-beta14
 - Smooth-scroll to a newly submitted comment after the list refreshes.
 - Briefly highlight the submitted comment after autoscroll.
