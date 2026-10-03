@@ -16,6 +16,21 @@ class GetList extends GetListProcessor
     public $defaultSortField='thread_id';
     public $defaultSortDirection='DESC';
 
+    public function initialize()
+    {
+        if (
+            !$this->modx->user
+            || !(
+                (bool) $this->modx->user->get('sudo')
+                || $this->modx->user->isMember('Administrator')
+            )
+        ) {
+            return 'access_denied';
+        }
+
+        return parent::initialize();
+    }
+
     public function prepareQueryBeforeCount(xPDOQuery $c)
     {
         $status=trim((string)$this->getProperty('status',''));
