@@ -1,4 +1,4 @@
-# ModxComments 0.2.0-beta13
+# ModxComments 0.2.0-beta14
 
 A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
 
@@ -199,3 +199,9 @@ Transport package metadata is now read through a safe helper with embedded fallb
 - `GET web/comment/count`.
 - Editable email notification Chunks.
 - Extended events: BeforeCreate, Publish and Vote.
+
+
+## beta14
+
+- Smooth autoscroll to a submitted comment with temporary highlight.
+- Localized relative timestamps such as “5 minutes ago” / “5 минут назад” via the browser Intl API.
