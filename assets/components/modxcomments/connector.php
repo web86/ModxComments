@@ -39,6 +39,7 @@ $action = isset($input['action']) ? strtolower(trim((string) $input['action'])) 
 $allowed = array(
     'web/init' => 'GET',
     'web/comment/getlist' => 'GET',
+    'web/comment/count' => 'GET',
     'web/comment/create' => 'POST',
     'web/comment/update' => 'POST',
     'web/comment/delete' => 'POST',
