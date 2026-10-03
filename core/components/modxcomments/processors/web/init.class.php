@@ -18,6 +18,7 @@ class ModxCommentsWebInitProcessor extends modProcessor
             'csrf' => $this->comments->getCsrfToken(),
             'user' => $this->comments->getCurrentUser(),
             'settings' => $this->comments->getPublicConfig(),
+            'i18n' => $this->comments->getFrontendLexicon(),
         ));
     }
 }
