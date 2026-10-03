@@ -30,7 +30,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.3.0','beta7');
+$builder->createPackage('modxcomments','0.3.0','beta8');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
 $category=$modx->newObject(modCategory::class);
@@ -99,7 +99,7 @@ $builder->putVehicle($vehicle);
 $builder->setPackageAttributes(array(
     'license'=>$readPackageText($root.'/LICENSE',"ModxComments\n\nCopyright (c) 2026 web86.\nAll rights reserved.\n"),
     'readme'=>$readPackageText($root.'/docs/INSTALL.md',"ModxComments for MODX 3\n\nInstall the package and add [[ModxComments]].\n"),
-    'changelog'=>$readPackageText($root.'/CHANGELOG.md',"ModxComments 0.3.0-beta7 — MODX 3 branch.\n"),
+    'changelog'=>$readPackageText($root.'/CHANGELOG.md',"ModxComments 0.3.0-beta8 — MODX 3 branch.\n"),
     'requires'=>array(
         'php'=>'>=7.4.0',
         'modx'=>'>=3.0.0',
@@ -107,4 +107,4 @@ $builder->setPackageAttributes(array(
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.3.0-beta7 transport package for MODX 3.\n";
+echo "Built ModxComments 0.3.0-beta8 transport package for MODX 3.\n";
