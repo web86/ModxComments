@@ -112,7 +112,7 @@ try{
             JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES
         );
     }
-}catch(Exception $e){
+}catch(Throwable $e){
     $message='[ModxComments] Manager connector error: '
         .get_class($e).': '.$e->getMessage()
         .' in '.$e->getFile().':'.$e->getLine();
