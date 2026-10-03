@@ -1,18 +1,27 @@
 <?php
+use MODX\Revolution\modCategory;
+use MODX\Revolution\modEvent;
+use MODX\Revolution\modMenu;
+use MODX\Revolution\modNamespace;
+use MODX\Revolution\modSystemSetting;
+use MODX\Revolution\modX;
+use xPDO\Transport\xPDOTransport;
+use xPDO\xPDO;
+
 if(!isset($object)||!($object instanceof modCategory)) return true;
 
 $modx=$object->xpdo;
 $action=isset($options[xPDOTransport::PACKAGE_ACTION])?$options[xPDOTransport::PACKAGE_ACTION]:xPDOTransport::ACTION_INSTALL;
 
 if($action===xPDOTransport::ACTION_UNINSTALL){
-    $menu=$modx->getObject('modMenu','modxcomments');
+    $menu=$modx->getObject(modMenu::class,'modxcomments');
     if($menu) $menu->remove();
 
-    foreach($modx->getCollection('modSystemSetting',array('namespace'=>'modxcomments')) as $setting){
+    foreach($modx->getCollection(modSystemSetting::class,array('namespace'=>'modxcomments')) as $setting){
         $setting->remove();
     }
 
-    $namespace=$modx->getObject('modNamespace','modxcomments');
+    $namespace=$modx->getObject(modNamespace::class,'modxcomments');
     if($namespace) $namespace->remove();
 
     return true;
@@ -23,7 +32,7 @@ $modelPath=$corePath.'model/';
 
 $namespace=$modx->getObject('modNamespace','modxcomments');
 if(!$namespace){
-    $namespace=$modx->newObject('modNamespace');
+    $namespace=$modx->newObject(modNamespace::class);
     $namespace->set('name','modxcomments');
 }
 $namespace->set('path','{core_path}components/modxcomments/');
@@ -51,9 +60,9 @@ $settings=array(
 
 foreach($settings as $key=>$spec){
     $fullKey='modxcomments.'.$key;
-    $setting=$modx->getObject('modSystemSetting',$fullKey);
+    $setting=$modx->getObject(modSystemSetting::class,$fullKey);
     if(!$setting){
-        $setting=$modx->newObject('modSystemSetting');
+        $setting=$modx->newObject(modSystemSetting::class);
         $setting->set('key',$fullKey);
         $setting->set('value',$spec[0]);
     }
@@ -63,14 +72,9 @@ foreach($settings as $key=>$spec){
     $setting->save();
 }
 
-$legacyActions=$modx->getCollection('modAction',array('namespace'=>'modxcomments'));
-foreach($legacyActions as $legacyAction){
-    $legacyAction->remove();
-}
-
-$menu=$modx->getObject('modMenu','modxcomments');
+$menu=$modx->getObject(modMenu::class,'modxcomments');
 if(!$menu){
-    $menu=$modx->newObject('modMenu');
+    $menu=$modx->newObject(modMenu::class);
     $menu->set('text','modxcomments');
 }
 $menu->fromArray(array(
@@ -173,7 +177,7 @@ try{
 
 $expectedFiles=array(
     MODX_CORE_PATH.'components/modxcomments/controllers/index.class.php',
-    MODX_CORE_PATH.'components/modxcomments/model/',
+    MODX_CORE_PATH.'components/modxcomments/src/',
     MODX_ASSETS_PATH.'components/modxcomments/js/comments.js',
 );
 
@@ -191,9 +195,9 @@ foreach(array(
     'ModxCommentsOnCommentPublish',
     'ModxCommentsOnCommentVote'
 ) as $eventName){
-    $event=$modx->getObject('modEvent',$eventName);
+    $event=$modx->getObject(modEvent::class,$eventName);
     if(!$event){
-        $event=$modx->newObject('modEvent');
+        $event=$modx->newObject(modEvent::class);
         $event->fromArray(array('name'=>$eventName,'service'=>6,'groupname'=>'ModxComments'),'',true,true);
         $event->save();
     }
