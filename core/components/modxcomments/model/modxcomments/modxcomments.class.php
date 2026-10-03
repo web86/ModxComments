@@ -28,6 +28,7 @@ class ModxComments
             'notifyAdmin' => false,
             'notifyAdminEmail' => '',
             'notifyReplies' => false,
+            'threadsPerPage' => 20,
         );
 
         $settings = array(
@@ -46,6 +47,7 @@ class ModxComments
             'notifyAdmin' => (bool) $modx->getOption('modxcomments.notify_admin', null, $defaults['notifyAdmin']),
             'notifyAdminEmail' => trim((string) $modx->getOption('modxcomments.notify_admin_email', null, $defaults['notifyAdminEmail'])),
             'notifyReplies' => (bool) $modx->getOption('modxcomments.notify_replies', null, $defaults['notifyReplies']),
+            'threadsPerPage' => (int) $modx->getOption('modxcomments.threads_per_page', null, $defaults['threadsPerPage']),
         );
 
         $this->config = array_merge($defaults, $settings, $config);
@@ -61,6 +63,7 @@ class ModxComments
             'maxDepth' => (int) $this->config['maxDepth'],
             'maxLength' => (int) $this->config['maxLength'],
             'editTime' => (int) $this->config['editTime'],
+            'threadsPerPage' => max(1, (int) $this->config['threadsPerPage']),
             'guestEmailRequired' => true,
             'captcha' => array(
                 'enabled' => $this->shouldUseTurnstile($user),
@@ -118,27 +121,106 @@ class ModxComments
         return function_exists('hash_equals') ? hash_equals($known, $token) : $known === $token;
     }
 
-    public function getComments($resourceId, $contextKey, $limit = 200)
+    public function getComments($resourceId, $contextKey, $page = 1, $perPage = null)
     {
         $resourceId = (int) $resourceId;
-        $limit = max(1, min(500, (int) $limit));
+        $page = max(1, (int) $page);
+        $perPage = $perPage === null ? (int) $this->config['threadsPerPage'] : (int) $perPage;
+        $perPage = max(1, min(100, $perPage));
+
         $this->assertResource($resourceId, $contextKey);
 
-        $c = $this->modx->newQuery('ModxCommentsComment');
-        $c->where(array(
+        $rootCriteria = array(
             'resource_id' => $resourceId,
             'context_key' => $contextKey,
+            'parent_id' => 0,
             'status:IN' => array('published', 'deleted'),
-        ));
-        $c->sortby('path', 'ASC');
-        $c->limit($limit);
+        );
+
+        $totalThreads = (int) $this->modx->getCount('ModxCommentsComment', $rootCriteria);
+        $pages = max(1, (int) ceil($totalThreads / $perPage));
+        if ($page > $pages) $page = $pages;
+
+        $rootsQuery = $this->modx->newQuery('ModxCommentsComment');
+        $rootsQuery->where($rootCriteria);
+        $rootsQuery->sortby('createdon', 'DESC');
+        $rootsQuery->sortby('id', 'DESC');
+        $rootsQuery->limit($perPage, ($page - 1) * $perPage);
 
         $items = array();
-        foreach ($this->modx->getCollection('ModxCommentsComment', $c) as $comment) {
-            $items[] = $this->serializeComment($comment);
+        foreach ($this->modx->getCollection('ModxCommentsComment', $rootsQuery) as $root) {
+            $threadId = (int) $root->get('thread_id');
+            if ($threadId < 1) $threadId = (int) $root->get('id');
+
+            $threadQuery = $this->modx->newQuery('ModxCommentsComment');
+            $threadQuery->where(array(
+                'resource_id' => $resourceId,
+                'context_key' => $contextKey,
+                'thread_id' => $threadId,
+                'status:IN' => array('published', 'deleted'),
+            ));
+            $threadQuery->sortby('path', 'ASC');
+
+            foreach ($this->modx->getCollection('ModxCommentsComment', $threadQuery) as $comment) {
+                $items[] = $this->serializeComment($comment);
+            }
         }
 
-        return array('total' => count($items), 'comments' => $items);
+        return array(
+            'total' => $this->getCommentCount($resourceId, $contextKey),
+            'totalThreads' => $totalThreads,
+            'comments' => $items,
+            'pagination' => array(
+                'page' => $page,
+                'pages' => $pages,
+                'perPage' => $perPage,
+                'totalThreads' => $totalThreads,
+            ),
+        );
+    }
+
+    public function getCommentCount($resourceId, $contextKey)
+    {
+        $resourceId = (int) $resourceId;
+        $this->assertResource($resourceId, $contextKey);
+
+        return (int) $this->modx->getCount('ModxCommentsComment', array(
+            'resource_id' => $resourceId,
+            'context_key' => $contextKey,
+            'status' => 'published',
+        ));
+    }
+
+    public function getFrontendLexicon()
+    {
+        $this->modx->lexicon->load('modxcomments:frontend');
+
+        $keys = array(
+            'comments','sign_in','leave_comment','cancel','name','email','website',
+            'insert_link','more_emoji','link_text','url','insert_link_button','comment',
+            'write_comment','post_comment','no_comments','no_comments_text','comment_deleted',
+            'edit_comment','save','reply','edit','delete','delete_question','delete_replies',
+            'awaiting_moderation','comment_rating','like','dislike','guest','permalink',
+            'pending','edited','reply_deleted','replying_to','replying_to_id','captcha_required',
+            'submitted_pending','submitted','comment_empty','posting','saving','updated',
+            'deleting','deleted','previous','next','page'
+        );
+
+        $strings = array();
+        foreach ($keys as $key) {
+            $strings[$key] = $this->modx->lexicon('mc.' . $key);
+        }
+
+        foreach (array(
+            'csrf_invalid','authentication_required','content_required','content_too_long',
+            'author_name_required','author_name_too_long','author_email_required',
+            'author_email_invalid','rate_limit_exceeded','captcha_failed','spam_detected',
+            'permission_denied','edit_window_expired','comment_not_found','vote_invalid'
+        ) as $errorKey) {
+            $strings['error.' . $errorKey] = $this->modx->lexicon('mc.error.' . $errorKey);
+        }
+
+        return $strings;
     }
 
     public function createComment(array $data)
@@ -149,6 +231,15 @@ class ModxComments
         $content = isset($data['content']) ? trim((string) $data['content']) : '';
 
         $this->assertResource($resourceId, $contextKey);
+
+        $beforeResults = $this->modx->invokeEvent('ModxCommentsBeforeCommentCreate', array(
+            'data' => &$data,
+            'service' => $this,
+        ));
+        if (is_array($beforeResults) && in_array(false, $beforeResults, true)) {
+            throw new RuntimeException('comment_create_cancelled');
+        }
+
         $this->assertCanCreate();
         $this->assertHoneypot($data);
         $this->assertContent($content);
@@ -214,6 +305,7 @@ class ModxComments
             'depth' => $depth,
             'path' => '',
             'user_id' => $userId,
+            'guest_owner_hash' => $user['authenticated'] ? '' : $this->getGuestOwnerHash(true),
             'author_name' => $authorName,
             'author_email' => $authorEmail,
             'content' => $content,
@@ -244,6 +336,10 @@ class ModxComments
         $this->notifyAdmin($comment);
         if ($comment->get('status') === 'published') {
             $this->notifyReplyAuthor($comment);
+            $this->modx->invokeEvent('ModxCommentsOnCommentPublish', array(
+                'comment' => $comment,
+                'service' => $this,
+            ));
         }
 
         return $this->serializeComment($comment);
@@ -334,9 +430,18 @@ class ModxComments
             $myVote = $value;
         }
 
+        $summary = $this->getVoteSummary($id, $voterHash);
+
+        $this->modx->invokeEvent('ModxCommentsOnCommentVote', array(
+            'comment' => $comment,
+            'value' => $myVote,
+            'votes' => $summary,
+            'service' => $this,
+        ));
+
         return array(
             'commentId' => $id,
-            'votes' => $this->getVoteSummary($id, $voterHash),
+            'votes' => $summary,
             'myVote' => $myVote,
         );
     }
@@ -357,16 +462,23 @@ class ModxComments
         $childEmail = trim((string) $comment->get('author_email'));
         if ($childEmail !== '' && strcasecmp($childEmail, $email) === 0) return false;
 
-        $siteName = (string) $this->modx->getOption('site_name', null, 'Website');
-        $author = trim((string) $comment->get('author_name'));
-        $url = $this->getCommentUrl($comment);
+        $placeholders = array(
+            'author_name' => trim((string) $comment->get('author_name')),
+            'content' => $this->plainExcerpt((string) $comment->get('content'), 1200),
+            'comment_url' => $this->getCommentUrl($comment),
+            'comment_id' => (int) $comment->get('id'),
+        );
 
-        $subject = '[' . $siteName . '] New reply to your comment';
-        $body = "Hello!\n\n"
-            . ($author !== '' ? $author : 'Someone')
-            . " replied to your comment.\n\n"
-            . $this->plainExcerpt((string) $comment->get('content'), 500)
-            . "\n\nOpen reply: " . $url . "\n";
+        $subject = $this->renderEmailChunk(
+            'ModxCommentsEmailReplySubject',
+            $placeholders,
+            '[' . $this->modx->getOption('site_name', null, 'Website') . '] New reply to your comment'
+        );
+        $body = $this->renderEmailChunk(
+            'ModxCommentsEmailReplyBody',
+            $placeholders,
+            $placeholders['author_name'] . " replied to your comment.\n\n" . $placeholders['content'] . "\n\n" . $placeholders['comment_url']
+        );
 
         $sent = $this->sendMail($email, $subject, $body);
         if ($sent) {
@@ -391,20 +503,38 @@ class ModxComments
         }
 
         $resource = $this->modx->getObject('modResource', (int) $comment->get('resource_id'));
-        $resourceTitle = $resource ? (string) $resource->get('pagetitle') : ('#' . $comment->get('resource_id'));
-        $siteName = (string) $this->modx->getOption('site_name', null, 'Website');
-        $status = (string) $comment->get('status');
+        $placeholders = array(
+            'status' => (string) $comment->get('status'),
+            'resource_title' => $resource ? (string) $resource->get('pagetitle') : ('#' . $comment->get('resource_id')),
+            'resource_id' => (int) $comment->get('resource_id'),
+            'author_name' => (string) $comment->get('author_name'),
+            'author_email' => (string) $comment->get('author_email'),
+            'content' => $this->plainExcerpt((string) $comment->get('content'), 2000),
+            'comment_url' => $this->getCommentUrl($comment),
+            'comment_id' => (int) $comment->get('id'),
+        );
 
-        $subject = '[' . $siteName . '] New comment (' . $status . ')';
-        $body = "New comment received.\n\n"
-            . "Status: " . $status . "\n"
-            . "Resource: " . $resourceTitle . " (#" . (int) $comment->get('resource_id') . ")\n"
-            . "Author: " . (string) $comment->get('author_name') . "\n"
-            . "Email: " . (string) $comment->get('author_email') . "\n\n"
-            . $this->plainExcerpt((string) $comment->get('content'), 1200)
-            . "\n\nComment URL: " . $this->getCommentUrl($comment) . "\n";
+        $subject = $this->renderEmailChunk(
+            'ModxCommentsEmailAdminSubject',
+            $placeholders,
+            '[' . $this->modx->getOption('site_name', null, 'Website') . '] New comment (' . $placeholders['status'] . ')'
+        );
+        $body = $this->renderEmailChunk(
+            'ModxCommentsEmailAdminBody',
+            $placeholders,
+            $placeholders['content'] . "\n\n" . $placeholders['comment_url']
+        );
 
         return $this->sendMail($email, $subject, $body);
+    }
+
+    protected function renderEmailChunk($name, array $placeholders, $fallback)
+    {
+        $chunk = $this->modx->getObject('modChunk', array('name' => $name));
+        if (!$chunk) return $fallback;
+
+        $rendered = $chunk->process($placeholders);
+        return trim((string) $rendered) !== '' ? (string) $rendered : $fallback;
     }
 
     protected function sendMail($to, $subject, $body)
@@ -477,7 +607,19 @@ class ModxComments
         }
 
         $user = $this->getCurrentUser();
-        if (!$user['authenticated'] || (int) $comment->get('user_id') !== (int) $user['id']) {
+        $owned = false;
+
+        if ($user['authenticated']) {
+            $owned = (int) $comment->get('user_id') === (int) $user['id'];
+        } elseif ((int) $comment->get('user_id') === 0) {
+            $knownHash = (string) $comment->get('guest_owner_hash');
+            $currentHash = $this->getGuestOwnerHash(false);
+            $owned = $knownHash !== '' && $currentHash !== '' && (
+                function_exists('hash_equals') ? hash_equals($knownHash, $currentHash) : $knownHash === $currentHash
+            );
+        }
+
+        if (!$owned) {
             throw new RuntimeException('permission_denied');
         }
 
@@ -571,6 +713,36 @@ class ModxComments
         if ((int) $this->modx->getCount('ModxCommentsComment', $c) >= (int) $this->config['rateLimitCount']) {
             throw new RuntimeException('rate_limit_exceeded');
         }
+    }
+
+    protected function getGuestOwnerHash($create = false)
+    {
+        $cookieName = 'modxcomments_owner';
+        $token = isset($_COOKIE[$cookieName])
+            ? preg_replace('/[^a-f0-9]/i', '', (string) $_COOKIE[$cookieName])
+            : '';
+
+        if (strlen($token) < 32 && $create) {
+            try {
+                $token = bin2hex(random_bytes(32));
+            } catch (Exception $e) {
+                $token = hash('sha256', uniqid('', true) . mt_rand());
+            }
+
+            setcookie(
+                $cookieName,
+                $token,
+                time() + 31536000,
+                '/',
+                '',
+                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                true
+            );
+            $_COOKIE[$cookieName] = $token;
+        }
+
+        if (strlen($token) < 32) return '';
+        return hash('sha256', 'guest-owner|' . $token . '|' . $this->hashClientValue('owner'));
     }
 
     protected function getVoterHash()
@@ -674,7 +846,16 @@ class ModxComments
     {
         $deleted = $comment->get('status') === 'deleted';
         $user = $this->getCurrentUser();
-        $owned = $user['authenticated'] && (int) $comment->get('user_id') === (int) $user['id'];
+        if ($user['authenticated']) {
+            $owned = (int) $comment->get('user_id') === (int) $user['id'];
+        } else {
+            $knownHash = (string) $comment->get('guest_owner_hash');
+            $currentHash = $this->getGuestOwnerHash(false);
+            $owned = (int) $comment->get('user_id') === 0
+                && $knownHash !== ''
+                && $currentHash !== ''
+                && (function_exists('hash_equals') ? hash_equals($knownHash, $currentHash) : $knownHash === $currentHash);
+        }
         $editable = !$deleted && $owned && $this->isWithinEditWindow($comment);
         $replyTo = null;
 
