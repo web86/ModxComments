@@ -8,6 +8,15 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
 
     public function initialize()
     {
+        if (
+            !$this->modx->user
+            || !(
+                (bool) $this->modx->user->get('sudo')
+                || $this->modx->user->isMember('Administrator')
+            )
+        ) {
+            return 'access_denied';
+        }
         $corePath=$this->modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
         $this->modx->addPackage('modxcomments',$corePath.'model/');
         return parent::initialize();
