@@ -183,7 +183,14 @@ foreach($expectedFiles as $expectedPath){
     }
 }
 
-foreach(array('ModxCommentsOnCommentCreate','ModxCommentsOnCommentUpdate','ModxCommentsOnCommentDelete') as $eventName){
+foreach(array(
+    'ModxCommentsBeforeCommentCreate',
+    'ModxCommentsOnCommentCreate',
+    'ModxCommentsOnCommentUpdate',
+    'ModxCommentsOnCommentDelete',
+    'ModxCommentsOnCommentPublish',
+    'ModxCommentsOnCommentVote'
+) as $eventName){
     $event=$modx->getObject('modEvent',$eventName);
     if(!$event){
         $event=$modx->newObject('modEvent');
