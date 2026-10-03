@@ -1,4 +1,6 @@
 <?php
+use MODX\Revolution\modExtraManagerController;
+
 class ModxcommentsIndexManagerController extends modExtraManagerController
 {
     public function getLanguageTopics()
