@@ -17,8 +17,10 @@ class ModxCommentsCommentGetListProcessor extends modProcessor
         try {
             $resource = (int) $this->getProperty('resource', 0);
             $context = $this->comments->cleanContextKey($this->getProperty('context', 'web'));
-            $limit = (int) $this->getProperty('limit', 200);
-            return $this->success('', $this->comments->getComments($resource, $context, $limit));
+            $page = max(1, (int) $this->getProperty('page', 1));
+            $perPage = (int) $this->getProperty('per_page', 0);
+            if ($perPage < 1) $perPage = null;
+            return $this->success('', $this->comments->getComments($resource, $context, $page, $perPage));
         } catch (Exception $e) {
             return $this->failure($e->getMessage());
         }
