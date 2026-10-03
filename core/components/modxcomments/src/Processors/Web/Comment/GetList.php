@@ -25,8 +25,13 @@ class GetList extends Processor
             if($perPage<1) $perPage=null;
 
             return $this->success('',$this->comments->getComments($resource,$context,$page,$perPage,(string)$this->getProperty('resource_token','')));
-        }catch(\Throwable $e){
+        }catch(\InvalidArgumentException $e){
             return $this->failure($e->getMessage());
+        }catch(\RuntimeException $e){
+            return $this->failure($e->getMessage());
+        }catch(\Throwable $e){
+            $this->modx->log(\MODX\Revolution\modX::LOG_LEVEL_ERROR,'[ModxComments] Public API error: '.$e->getMessage());
+            return $this->failure('server_error');
         }
     }
 }
