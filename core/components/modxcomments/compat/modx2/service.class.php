@@ -568,6 +568,16 @@ class ModxComments
 
     protected function renderEmailChunk($name, array $placeholders, $fallback)
     {
+        foreach ($placeholders as $key => $value) {
+            if (is_scalar($value) || $value === null) {
+                $placeholders[$key] = str_replace(
+                    array('[[', ']]'),
+                    array('[ [', '] ]'),
+                    (string) $value
+                );
+            }
+        }
+
         $chunk = $this->modx->getObject('modChunk', array('name' => $name));
         if (!$chunk) return $fallback;
 
@@ -781,6 +791,19 @@ class ModxComments
         }
     }
 
+    protected function setSecurityCookie($name, $value, $expires)
+    {
+        $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
+        setcookie($name, $value, array(
+            'expires' => (int) $expires,
+            'path' => '/',
+            'secure' => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ));
+    }
+
     protected function getGuestOwnerHash($create = false)
     {
         $cookieName = 'modxcomments_owner';
@@ -795,15 +818,7 @@ class ModxComments
                 $token = hash('sha256', uniqid('', true) . mt_rand());
             }
 
-            setcookie(
-                $cookieName,
-                $token,
-                time() + 31536000,
-                '/',
-                '',
-                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-                true
-            );
+            $this->setSecurityCookie($cookieName, $token, time() + 31536000);
             $_COOKIE[$cookieName] = $token;
         }
 
@@ -828,15 +843,7 @@ class ModxComments
                 $token = hash('sha256', uniqid('', true) . mt_rand());
             }
 
-            setcookie(
-                $cookieName,
-                $token,
-                time() + 31536000,
-                '/',
-                '',
-                !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-                true
-            );
+            $this->setSecurityCookie($cookieName, $token, time() + 31536000);
             $_COOKIE[$cookieName] = $token;
         }
 
