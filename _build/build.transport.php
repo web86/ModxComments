@@ -50,7 +50,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','1.0.0','beta2');
+$builder->createPackage('modxcomments','1.0.0','rc1');
 $builder->registerNamespace(
     'modxcomments',
     false,
@@ -70,7 +70,7 @@ $snippetSource=preg_replace('/\?>\s*$/','',$snippetSource);
 $snippet=$modx->newObject('modSnippet');
 $snippet->fromArray(array(
     'name'=>'ModxComments',
-    'description'=>'AJAX-first comments for MODX Revolution 2.8 and 3.x.',
+    'description'=>'AJAX-first comments for MODX Revolution 2.8 and 3.0-3.2.',
     'snippet'=>trim($snippetSource),
 ),'',true,true);
 $category->addMany($snippet);
@@ -134,11 +134,11 @@ $builder->setPackageAttributes(array(
     ),
     'readme'=>$readPackageText(
         $root.'/docs/INSTALL.md',
-        "ModxComments 1.0.0-beta2\nSupports MODX Revolution 2.8.x and 3.x.\n"
+        "ModxComments 1.0.0-rc1\nSupports MODX Revolution 2.8.x and 3.x.\n"
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 1.0.0-beta2\nUnified MODX 2.8 + MODX 3 package.\n"
+        "ModxComments 1.0.0-rc1\nUnified MODX 2.8 + MODX 3 package.\n"
     ),
     'requires'=>array(
         'php'=>'>=7.4.0',
@@ -148,4 +148,4 @@ $builder->setPackageAttributes(array(
 
 $builder->pack();
 
-echo "Built universal ModxComments 1.0.0-beta2 transport package for MODX 2.8 + MODX 3.0-3.2.\n";
+echo "Built universal ModxComments 1.0.0-rc1 transport package for MODX 2.8 + MODX 3.0-3.2.\n";
