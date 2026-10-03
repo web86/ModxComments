@@ -37,6 +37,7 @@ class ModxComments
             'notifyAdminEmail' => '',
             'notifyReplies' => false,
             'threadsPerPage' => 20,
+            'resourceSigningKey' => '',
         );
 
         $settings = array(
@@ -56,6 +57,7 @@ class ModxComments
             'notifyAdminEmail' => trim((string) $modx->getOption('modxcomments.notify_admin_email', null, $defaults['notifyAdminEmail'])),
             'notifyReplies' => (bool) $modx->getOption('modxcomments.notify_replies', null, $defaults['notifyReplies']),
             'threadsPerPage' => (int) $modx->getOption('modxcomments.threads_per_page', null, $defaults['threadsPerPage']),
+            'resourceSigningKey' => (string) $modx->getOption('modxcomments.resource_signing_key', null, $defaults['resourceSigningKey']),
         );
 
         $this->config = array_merge($defaults, $settings, $config);
@@ -163,13 +165,14 @@ class ModxComments
         return function_exists('hash_equals') ? hash_equals($known, $token) : $known === $token;
     }
 
-    public function getComments($resourceId, $contextKey, $page = 1, $perPage = null)
+    public function getComments($resourceId, $contextKey, $page = 1, $perPage = null, $resourceToken = '')
     {
         $resourceId = (int) $resourceId;
         $page = max(1, (int) $page);
         $perPage = $perPage === null ? (int) $this->config['threadsPerPage'] : (int) $perPage;
         $perPage = max(1, min(100, $perPage));
 
+        $this->assertResourceToken($resourceId, $contextKey, $resourceToken);
         $this->assertResource($resourceId, $contextKey);
 
         $rootCriteria = array(
@@ -209,7 +212,7 @@ class ModxComments
         }
 
         return array(
-            'total' => $this->getCommentCount($resourceId, $contextKey),
+            'total' => $this->getCommentCount($resourceId, $contextKey, $resourceToken),
             'totalThreads' => $totalThreads,
             'comments' => $items,
             'pagination' => array(
@@ -221,9 +224,10 @@ class ModxComments
         );
     }
 
-    public function getCommentCount($resourceId, $contextKey)
+    public function getCommentCount($resourceId, $contextKey, $resourceToken = '')
     {
         $resourceId = (int) $resourceId;
+        $this->assertResourceToken($resourceId, $contextKey, $resourceToken);
         $this->assertResource($resourceId, $contextKey);
 
         return (int) $this->modx->getCount(Comment::class, array(
@@ -258,7 +262,7 @@ class ModxComments
             'author_name_required','author_name_too_long','author_email_required',
             'author_email_invalid','rate_limit_exceeded','captcha_failed','spam_detected',
             'permission_denied','edit_window_expired','comment_not_found','vote_invalid',
-            'comment_create_cancelled'
+            'comment_create_cancelled','resource_token_invalid'
         ) as $errorKey) {
             $strings['error.' . $errorKey] = $this->modx->lexicon('mc.error.' . $errorKey);
         }
@@ -281,6 +285,8 @@ class ModxComments
         $parentId = isset($data['parent']) ? (int) $data['parent'] : 0;
         $content = isset($data['content']) ? trim((string) $data['content']) : '';
 
+        $resourceToken = isset($data['resource_token']) ? (string) $data['resource_token'] : '';
+        $this->assertResourceToken($resourceId, $contextKey, $resourceToken);
         $this->assertResource($resourceId, $contextKey);
         $this->assertCanCreate();
         $this->assertHoneypot($data);
@@ -637,7 +643,10 @@ class ModxComments
     public function cleanContextKey($contextKey)
     {
         $contextKey = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $contextKey);
-        return $contextKey !== '' ? $contextKey : 'web';
+        if ($contextKey === '' || strtolower($contextKey) === 'mgr') {
+            return 'web';
+        }
+        return $contextKey;
     }
 
     protected function getOwnedEditableComment($id)
@@ -713,6 +722,28 @@ class ModxComments
         }
     }
 
+    public function validateResourceToken($resourceId, $contextKey, $token)
+    {
+        $resourceId = (int) $resourceId;
+        $contextKey = $this->cleanContextKey($contextKey);
+        $token = trim((string) $token);
+        $key = (string) $this->config['resourceSigningKey'];
+
+        if ($resourceId < 1 || $key === '' || $token === '') return false;
+
+        $expected = hash_hmac('sha256', $resourceId . '|' . $contextKey, $key);
+        return function_exists('hash_equals')
+            ? hash_equals($expected, $token)
+            : $expected === $token;
+    }
+
+    protected function assertResourceToken($resourceId, $contextKey, $token)
+    {
+        if (!$this->validateResourceToken($resourceId, $contextKey, $token)) {
+            throw new RuntimeException('resource_token_invalid');
+        }
+    }
+
     protected function assertResource($resourceId, $contextKey)
     {
         if ($resourceId < 1) throw new InvalidArgumentException('resource_required');
@@ -721,9 +752,12 @@ class ModxComments
             'id' => $resourceId,
             'context_key' => $contextKey,
             'deleted' => 0,
+            'published' => 1,
         ));
 
-        if (!$resource) throw new InvalidArgumentException('resource_not_found');
+        if (!$resource || (method_exists($resource, 'checkPolicy') && !$resource->checkPolicy('view'))) {
+            throw new InvalidArgumentException('resource_not_found');
+        }
     }
 
     protected function assertCanCreate()
