@@ -1,12 +1,15 @@
 <?php
-class ModxCommentsMgrCommentRemoveProcessor extends modProcessor
+use MODX\Revolution\Processors\Processor;
+use ModxComments\Model\Comment;
+
+class ModxCommentsMgrCommentRemoveProcessor extends Processor
 {
     public function process()
     {
         $id=(int)$this->getProperty('id',0);
         $corePath=$this->modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
-        $this->modx->addPackage('modxcomments',$corePath.'model/');
-        $comment=$this->modx->getObject('ModxCommentsComment',$id);
+        $this->modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
+        $comment=$this->modx->getObject(Comment::class,$id);
         if(!$comment) return $this->failure('comment_not_found');
 
         $comment->set('status','deleted');
