@@ -3,6 +3,15 @@ class ModxCommentsMgrCommentStatusProcessor extends modProcessor
 {
     public function process()
     {
+        if (
+            !$this->modx->user
+            || !(
+                (bool) $this->modx->user->get('sudo')
+                || $this->modx->user->isMember('Administrator')
+            )
+        ) {
+            return $this->failure('access_denied');
+        }
         $id=(int)$this->getProperty('id',0);
         $status=(string)$this->getProperty('status','');
 
