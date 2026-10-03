@@ -272,6 +272,13 @@ class ModxComments
 
     public function createComment(array $data)
     {
+        $resourceId = isset($data['resource']) ? (int) $data['resource'] : 0;
+        $contextKey = isset($data['context']) ? $this->cleanContextKey($data['context']) : 'web';
+        $resourceToken = isset($data['resource_token']) ? (string) $data['resource_token'] : '';
+
+        $this->assertResourceToken($resourceId, $contextKey, $resourceToken);
+        $this->assertResource($resourceId, $contextKey);
+
         $beforeResults = $this->modx->invokeEvent('ModxCommentsBeforeCommentCreate', array(
             'data' => &$data,
             'service' => $this,
@@ -280,14 +287,15 @@ class ModxComments
             throw new RuntimeException('comment_create_cancelled');
         }
 
-        $resourceId = isset($data['resource']) ? (int) $data['resource'] : 0;
-        $contextKey = isset($data['context']) ? $this->cleanContextKey($data['context']) : 'web';
+        // Resource routing is a signed invariant. Plugins may transform comment
+        // data, but may not redirect the request to another resource/context.
+        $data['resource'] = $resourceId;
+        $data['context'] = $contextKey;
+        $data['resource_token'] = $resourceToken;
+
         $parentId = isset($data['parent']) ? (int) $data['parent'] : 0;
         $content = isset($data['content']) ? trim((string) $data['content']) : '';
 
-        $resourceToken = isset($data['resource_token']) ? (string) $data['resource_token'] : '';
-        $this->assertResourceToken($resourceId, $contextKey, $resourceToken);
-        $this->assertResource($resourceId, $contextKey);
         $this->assertCanCreate();
         $this->assertHoneypot($data);
         $this->assertContent($content);
@@ -614,6 +622,11 @@ class ModxComments
 
     protected function sendMail($to, $subject, $body)
     {
+        $to = trim((string) $to);
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
         try {
             $mail = $this->modx->getService('mail', modPHPMailer::class);
             if (!$mail) {
