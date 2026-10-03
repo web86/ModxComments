@@ -28,7 +28,7 @@ ModxComments.grid.Comments=function(config){
     Ext.applyIf(config,{
         id:'modxcomments-grid-comments',
         url:ModxComments.config.connectorUrl,
-        baseParams:{action:'mgr/comment/getlist'},
+        baseParams:{action:'ModxComments\\Processors\\Mgr\\Comment\\GetList'},
         fields:[
             'id','resource_id','resource_title','parent_id','thread_id','depth','path',
             'author_name','author_email','content','parent_author','parent_excerpt',
@@ -90,21 +90,7 @@ ModxComments.grid.Comments=function(config){
                 xtype:'textfield',
                 width:240,
                 emptyText:_('modxcomments.search'),
-                viewConfig:{
-            getRowClass:function(record){
-                var cls=[];
-                if(record.data.is_admin){
-                    cls.push('mc-mgr-row-admin');
-                }
-                if((parseInt(record.data.depth,10)||0)>0){
-                    cls.push('mc-mgr-row-reply');
-                }else{
-                    cls.push('mc-mgr-row-root');
-                }
-                return cls.join(' ');
-            }
-        },
-        listeners:{change:{fn:this.search,scope:this,buffer:400}}
+                listeners:{change:{fn:this.search,scope:this,buffer:400}}
             },
             {
                 text:_('modxcomments.clear'),
@@ -118,6 +104,20 @@ ModxComments.grid.Comments=function(config){
             {text:_('modxcomments.pending'),handler:function(){this.filterStatus('pending');},scope:this},
             {text:_('modxcomments.spam'),handler:function(){this.filterStatus('spam');},scope:this}
         ],
+        viewConfig:{
+            getRowClass:function(record){
+                var cls=[];
+                if(record.data.is_admin){
+                    cls.push('mc-mgr-row-admin');
+                }
+                if((parseInt(record.data.depth,10)||0)>0){
+                    cls.push('mc-mgr-row-reply');
+                }else{
+                    cls.push('mc-mgr-row-root');
+                }
+                return cls.join(' ');
+            }
+        },
         listeners:{
             rowcontextmenu:function(grid,rowIndex,event){
                 event.stopEvent();
@@ -198,7 +198,11 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
     setStatus:function(id,status){
         MODx.Ajax.request({
             url:ModxComments.config.connectorUrl,
-            params:{action:'mgr/comment/status',id:id,status:status},
+            params:{
+                action:'ModxComments\\Processors\\Mgr\\Comment\\Status',
+                id:id,
+                status:status
+            },
             listeners:{
                 success:{
                     fn:function(){
@@ -216,7 +220,10 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
             title:_('modxcomments.delete'),
             text:_('modxcomments.delete_confirm'),
             url:ModxComments.config.connectorUrl,
-            params:{action:'mgr/comment/remove',id:id},
+            params:{
+                action:'ModxComments\\Processors\\Mgr\\Comment\\Remove',
+                id:id
+            },
             listeners:{
                 success:{
                     fn:function(){
