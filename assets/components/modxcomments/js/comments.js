@@ -6,6 +6,7 @@
       this.root = root;
       this.resource = Number(root.dataset.resource || 0);
       this.context = root.dataset.context || 'web';
+      this.resourceToken = root.dataset.resourceToken || '';
       this.api = root.dataset.api;
       this.csrf = '';
       this.user = { id: 0, authenticated: false, name: '' };
@@ -764,7 +765,12 @@
         credentials: 'same-origin',
         headers: { Accept: 'application/json' }
       };
-      const base = { action, context: this.context, ...params };
+      const base = {
+        action,
+        context: this.context,
+        resource_token: this.resourceToken,
+        ...params
+      };
 
       if (method === 'GET') {
         Object.entries(base).forEach(([key, value]) => url.searchParams.set(key, value));
