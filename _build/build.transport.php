@@ -113,7 +113,7 @@ $builder->setPackageAttributes(array(
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-beta13\n- Hotfix for transport metadata fallback during package build.\n"
+        "ModxComments 0.2.0-beta13\n- Frontend localization, guest ownership, thread pagination/count, email Chunks and extended events.\n"
     ),
 ));
 $builder->pack();
