@@ -423,6 +423,7 @@
       return `
         <header class="mc-comment-header">
           <span class="mc-avatar" aria-hidden="true">${initial}</span>
+          ${comment.author && comment.author.isAdmin ? `<span class="mc-admin-badge" title="${this.escape(this.t('admin', {}, 'Admin'))}">★ ${this.escape(this.t('admin', {}, 'Admin'))}</span>` : ''}
           <span class="mc-author">${this.escape(comment.author.name || guest)}</span>
           <a class="mc-permalink" href="#comment-${id}" title="${this.escape(this.t('permalink', { id }, `Permalink to comment #${id}`))}">#${id}</a>
           <time datetime="${this.escape(comment.created)}" title="${this.escape(comment.created)}">${this.escape(this.relativeTime(comment.createdTs, comment.created))}</time>
