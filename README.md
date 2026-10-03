@@ -1,10 +1,12 @@
-# ModxComments 0.2.0-beta14
+# ModxComments 0.2.0-pl
 
-A cache-safe, AJAX-first comments component for MODX Revolution 2.x.
+A stable, cache-safe, AJAX-first comments component for MODX Revolution 2.8.x.
 
-## v0.2
+## Stable MODX 2 release
 
-This branch adds the first installable Extra milestone:
+`main` is the stable MODX 2 line. The separate `modx3` branch targets MODX Revolution 3.
+
+Current stable feature set:
 
 - cached MODX resources remain independent from live comment state;
 - threaded comments and guest/authenticated posting;
@@ -48,9 +50,9 @@ The installer creates the namespace, snippet, system settings, manager menu, cus
 
 Uninstall intentionally does **not** drop comment data.
 
-## Updating from 0.2.0-beta
+## Updating
 
-Build/install `0.2.0-beta13` over the previous beta. The installer rewrites the existing `Comments` menu entry to namespace routing:
+Build/install `0.2.0-pl` over any previous 0.2 beta. Comment data is preserved. The installer keeps the `Comments` menu on namespace routing:
 
 ```text
 namespace = modxcomments
@@ -119,7 +121,7 @@ Frontend and manager UI received the first full visual/interaction pass in beta4
 - five common emoji plus an expandable emoji panel;
 - replies display a short quote from the parent comment.
 
-`modxcomments.edit_time` is measured in seconds. The default `900` means an authenticated author can edit/delete their own comment for 15 minutes after posting. Guest comments are intentionally not editable because v0.2 does not issue a guest ownership credential.
+`modxcomments.edit_time` is measured in seconds. The default `900` means an author can edit/delete their own comment for 15 minutes after posting. Authenticated users are matched by MODX user ID; new guest comments use a secure HttpOnly ownership cookie/hash.
 
 
 ## Moderation defaults
@@ -201,7 +203,6 @@ Transport package metadata is now read through a safe helper with embedded fallb
 - Extended events: BeforeCreate, Publish and Vote.
 
 
-## beta14
+## 0.2.0-pl
 
-- Smooth autoscroll to a submitted comment with temporary highlight.
-- Localized relative timestamps such as “5 minutes ago” / “5 минут назад” via the browser Intl API.
+Stable MODX 2 release promoted from the live-tested beta14 codebase. No runtime behavior was changed during promotion.
