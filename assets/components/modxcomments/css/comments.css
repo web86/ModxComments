@@ -554,3 +554,37 @@
   font-size: .84em;
   font-style: italic;
 }
+
+
+/* beta13: count heading and root-thread pagination */
+.mc-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 1.08em;
+}
+
+.mc-heading strong {
+  font-weight: 700;
+}
+
+.mc-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 36px;
+  margin: 16px 0 2px;
+  color: var(--mc-muted);
+  font-size: .9em;
+}
+
+.mc-pagination:empty {
+  display: none;
+}
+
+.mc-pagination .mc-btn:disabled {
+  cursor: default;
+  opacity: .45;
+}
