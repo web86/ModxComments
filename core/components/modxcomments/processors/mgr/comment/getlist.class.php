@@ -1,7 +1,14 @@
 <?php
-class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
+use MODX\Revolution\Processors\Model\GetListProcessor;
+use MODX\Revolution\modResource;
+use MODX\Revolution\modUser;
+use ModxComments\Model\Comment;
+use xPDO\Om\xPDOObject;
+use xPDO\Om\xPDOQuery;
+
+class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
 {
-    public $classKey='ModxCommentsComment';
+    public $classKey=Comment::class;
     public $languageTopics=array('modxcomments:default');
     public $defaultSortField='thread_id';
     public $defaultSortDirection='DESC';
@@ -9,7 +16,7 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
     public function initialize()
     {
         $corePath=$this->modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
-        $this->modx->addPackage('modxcomments',$corePath.'model/');
+        $this->modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
         return parent::initialize();
     }
 
@@ -62,7 +69,7 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
     {
         $row=$object->toArray();
 
-        $resource=$this->modx->getObject('modResource',(int)$object->get('resource_id'));
+        $resource=$this->modx->getObject(modResource::class,(int)$object->get('resource_id'));
         $row['resource_title']=$resource
             ? $resource->get('pagetitle').' (#'.$resource->get('id').')'
             : '#'.$object->get('resource_id');
@@ -78,7 +85,7 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
 
         $parentId=(int)$object->get('parent_id');
         if($parentId>0){
-            $parent=$this->modx->getObject('ModxCommentsComment',$parentId);
+            $parent=$this->modx->getObject(Comment::class,$parentId);
             if($parent){
                 $row['parent_author']=(string)$parent->get('author_name');
                 $parentText=trim(preg_replace('/\s+/u',' ',strip_tags((string)$parent->get('content'))));
@@ -90,7 +97,7 @@ class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
 
         $userId=(int)$object->get('user_id');
         if($userId>0){
-            $user=$this->modx->getObject('modUser',$userId);
+            $user=$this->modx->getObject(modUser::class,$userId);
             if($user){
                 $row['is_admin']=(bool)$user->get('sudo') || $user->isMember('Administrator');
             }
