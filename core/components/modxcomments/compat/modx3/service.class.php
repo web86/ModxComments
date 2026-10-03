@@ -401,6 +401,11 @@ class ModxComments
         $this->assertContent($content);
 
         $comment = $this->getOwnedEditableComment($id);
+        $this->assertResourceToken(
+            (int) $comment->get('resource_id'),
+            (string) $comment->get('context_key'),
+            isset($data['resource_token']) ? (string) $data['resource_token'] : ''
+        );
         $comment->set('content', $content);
         $comment->set('content_html', $this->renderPlainText($content));
         $comment->set('content_hash', hash('sha256',
@@ -418,9 +423,14 @@ class ModxComments
         return $this->serializeComment($comment);
     }
 
-    public function deleteComment($id)
+    public function deleteComment($id, $resourceToken = '')
     {
         $comment = $this->getOwnedEditableComment((int) $id);
+        $this->assertResourceToken(
+            (int) $comment->get('resource_id'),
+            (string) $comment->get('context_key'),
+            $resourceToken
+        );
         $comment->set('status', 'deleted');
         $comment->set('deletedon', date('Y-m-d H:i:s'));
         $comment->set('content', '');
@@ -437,7 +447,7 @@ class ModxComments
         return $this->serializeComment($comment);
     }
 
-    public function voteComment($id, $value)
+    public function voteComment($id, $value, $resourceToken = '')
     {
         $id = (int) $id;
         $value = (int) $value;
@@ -449,6 +459,12 @@ class ModxComments
         if (!$comment || $comment->get('status') !== 'published') {
             throw new InvalidArgumentException('comment_not_found');
         }
+
+        $this->assertResourceToken(
+            (int) $comment->get('resource_id'),
+            (string) $comment->get('context_key'),
+            $resourceToken
+        );
 
         $voterHash = $this->getVoterHash();
         $vote = $this->modx->getObject(Vote::class, array(
