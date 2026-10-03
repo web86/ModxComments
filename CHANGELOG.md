@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0-beta9 — MODX 3
+- Render admin-authored frontend comments with an Admin badge and current profile fullname.
+- Resolve authenticated manager-admin profile/email correctly when posting from the frontend.
+
 ## 0.3.0-beta8 — MODX 3
 - Recognize an authenticated MODX manager administrator on the frontend when there is no separate web-context login.
 - Use the valid `mgr` session only for sudo users or members of the Administrator group.
