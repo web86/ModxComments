@@ -286,7 +286,8 @@ class ModxComments
         if ($user['authenticated']) {
             $userId = (int) $user['id'];
             $authorName = (string) $user['name'];
-            $profile = $this->modx->user->getOne('Profile');
+            $authorUser = $this->modx->getObject('modUser', $userId);
+            $profile = $authorUser ? $authorUser->getOne('Profile') : null;
             if ($profile) {
                 $authorEmail = trim((string) $profile->get('email'));
             }
