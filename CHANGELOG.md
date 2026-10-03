@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-beta8 — MODX 3
+- Recognize an authenticated MODX manager administrator on the frontend when there is no separate web-context login.
+- Use the valid `mgr` session only for sudo users or members of the Administrator group.
+- Preserve normal web-context authentication as the first priority.
+- Expose the authentication source internally so frontend/admin identity remains explicit.
+
 ## 0.3.0-beta7 — MODX 3
 - Fix manager grid response format.
 - Avoid double-encoding JSON returned by GetListProcessor::outputArray().
