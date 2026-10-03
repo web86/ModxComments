@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0-beta3 — MODX 3
+- Move MODX 3 runtime processors to namespaced classes under `src/Processors`.
+- Make the manager grid call processor FQCNs, matching the standard MODX 3 Extra pattern.
+- Map the public `web/comment/*` API actions internally to FQCN processors.
+- Register the ModxComments namespace package in both public and manager connectors before processor dispatch.
+- Clean up the manager grid configuration and restore `viewConfig` to the correct level.
+- Keep the corrected xPDO 3 schema from beta2.
+
 ## 0.3.0-beta2 — MODX 3
 - Fix xPDO 3 schema namespaces to use XML single backslashes, matching MODX 3/xPDO 3 conventions.
 - Regenerate the MODX 3 model under the correct `ModxComments\Model` namespace.
