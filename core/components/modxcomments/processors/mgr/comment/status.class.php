@@ -1,8 +1,5 @@
 <?php
-use MODX\Revolution\Processors\Processor;
-use ModxComments\Model\Comment;
-
-class ModxCommentsMgrCommentStatusProcessor extends Processor
+class ModxCommentsMgrCommentStatusProcessor extends modProcessor
 {
     public function process()
     {
@@ -22,7 +19,7 @@ class ModxCommentsMgrCommentStatusProcessor extends Processor
         require_once $corePath.'model/modxcomments/modxcomments.class.php';
         $comments=new ModxComments($this->modx);
 
-        $comment=$this->modx->getObject(Comment::class,$id);
+        $comment=$this->modx->getObject('ModxCommentsComment',$id);
         if(!$comment){
             return $this->failure('comment_not_found');
         }
