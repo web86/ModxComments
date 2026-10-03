@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta6 — MODX 3
+- Fix manager connector response serialization for MODX 3.
+- Replace removed ProcessorResponse::toJSON() with getResponse() + json_encode().
+- Confirms manager processor dispatch and xPDO model loading now reach successful processor execution.
+
 ## 0.3.0-beta5 — MODX 3
 - Commit the xPDO 3 model classes and metadata into the repository instead of generating them during normal transport builds.
 - Remove parseSchema() from the regular transport build path.
