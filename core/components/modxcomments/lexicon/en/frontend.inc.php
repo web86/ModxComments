@@ -62,3 +62,4 @@ $_lang['mc.error.permission_denied']='You cannot modify this comment.';
 $_lang['mc.error.edit_window_expired']='The editing window for this comment has expired.';
 $_lang['mc.error.comment_not_found']='Comment not found.';
 $_lang['mc.error.vote_invalid']='Invalid vote.';
+$_lang['mc.error.comment_create_cancelled']='Comment submission was cancelled.';
