@@ -588,3 +588,18 @@
   cursor: default;
   opacity: .45;
 }
+
+
+/* beta14: highlight a freshly submitted comment after autoscroll */
+.mc-comment.is-new-comment {
+  animation: mc-new-comment-pulse 2.2s ease;
+}
+
+@keyframes mc-new-comment-pulse {
+  0%, 100% {
+    box-shadow: var(--mc-shadow);
+  }
+  25%, 65% {
+    box-shadow: 0 0 0 4px rgba(47, 111, 237, .16), var(--mc-shadow);
+  }
+}
