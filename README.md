@@ -1,6 +1,6 @@
 # ModxComments 1.0.0-beta1
 
-One transport package for **MODX Revolution 2.8.x and MODX 3.x**.
+One transport package for **MODX Revolution 2.8.x and MODX 3.0–3.2.0–3.2**.
 
 ModxComments is a cache-safe, AJAX-first threaded comments Extra with a shared frontend and separate compatibility layers for xPDO 2 and xPDO 3.
 
@@ -29,7 +29,7 @@ ModxComments is a cache-safe, AJAX-first threaded comments Extra with a shared f
 
 ```text
 MODX Revolution 2.8.x
-MODX Revolution 3.x
+MODX Revolution 3.0–3.2
 ```
 
 The runtime chooses the correct layer automatically:
@@ -62,9 +62,9 @@ The resulting package is:
 modxcomments-1.0.0-beta1
 ```
 
-Install that same transport ZIP on either MODX 2.8 or MODX 3.
+Install that same transport ZIP on either MODX 2.8 or MODX 3.0–3.2.
 
-The universal build intentionally uses a MODX 2-shaped transport vehicle while shipping both runtime layers. This avoids putting MODX 3-only class names into a package that must also install on MODX 2.
+The universal build intentionally uses a MODX 2-shaped transport vehicle while shipping both runtime layers. This avoids putting MODX 3.0–3.2-only class names into a package that must also install on MODX 2.
 
 ## Usage
 
@@ -112,5 +112,10 @@ ModxCommentsOnCommentVote
 ## Development branches
 
 - `main` — MODX 2 reference line.
-- `modx3` — MODX 3 reference line.
+- `modx3` — MODX 3.0–3.2 reference line.
 - `unified` — combined package and the intended forward path after validation.
+
+
+### MODX 3.3 note
+
+This beta targets MODX 3.0–3.2. MODX currently loads deprecated global class aliases by default on that line, while their automatic loading is planned to stop in 3.3. The runtime itself already uses the MODX 3 namespaced model/processors; the universal transport vehicle should be revalidated before claiming MODX 3.3 support.
