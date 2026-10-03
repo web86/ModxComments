@@ -9,7 +9,8 @@
       this.api = root.dataset.api;
       this.csrf = '';
       this.user = { id: 0, authenticated: false, name: '' };
-      this.settings = { allowGuests: true, maxDepth: 5, maxLength: 5000, captcha: { enabled: false } };
+      this.settings = { allowGuests: true, maxDepth: 5, maxLength: 5000, threadsPerPage: 20, captcha: { enabled: false } };
+      this.i18n = {};
       this.comments = [];
       this.localPending = [];
       this.parent = 0;
@@ -17,26 +18,33 @@
       this.deletingId = 0;
       this.captchaToken = '';
       this.turnstileWidget = null;
+      this.page = 1;
+      this.total = 0;
+      this.pagination = { page: 1, pages: 1, perPage: 20, totalThreads: 0 };
       this.frequentEmoji = ['😀', '😂', '👍', '❤️', '🎉'];
       this.moreEmoji = ['😊', '😍', '🤔', '😅', '😢', '😡', '🙏', '👏', '🔥', '✅', '😉', '🤝', '💡', '🚀', '💯'];
     }
 
     async init() {
       this.renderShell();
-      this.bindShellEvents();
       this.setLoading(true);
 
       try {
         const [init, list] = await Promise.all([
           this.request('web/init'),
-          this.request('web/comment/getlist', { resource: this.resource, limit: 200 })
+          this.request('web/comment/getlist', { resource: this.resource, page: 1 })
         ]);
 
         this.csrf = init.csrf;
         this.user = init.user;
-        this.settings = init.settings;
+        this.settings = init.settings || this.settings;
+        this.i18n = init.i18n || {};
+
+        this.renderShell();
+        this.bindShellEvents();
+        this.setLoading(true);
         this.renderForm();
-        this.renderComments(list.comments || []);
+        this.applyList(list);
         await this.initCaptcha();
       } catch (error) {
         this.showStatus(this.humanError(error), true);
@@ -45,12 +53,26 @@
       }
     }
 
+    t(key, replacements = {}, fallback = '') {
+      let value = this.i18n[key] || fallback || key;
+
+      Object.keys(replacements).forEach((name) => {
+        value = value.replace(new RegExp('\\{' + name + '\\}', 'g'), String(replacements[name]));
+      });
+
+      return value;
+    }
+
     renderShell() {
       this.root.innerHTML = `
+        <div class="mc-heading">
+          <strong data-mc-title>${this.escape(this.t('comments', {}, 'Comments'))}</strong>
+        </div>
         <div class="mc-loading" data-mc-loading aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
         <div class="mc-list" data-mc-list></div>
+        <nav class="mc-pagination" data-mc-pagination aria-label="Pagination"></nav>
         <div class="mc-composer" data-mc-composer></div>
         <div class="mc-status" data-mc-status role="status" aria-live="polite"></div>
       `;
@@ -58,6 +80,7 @@
 
     bindShellEvents() {
       const list = this.root.querySelector('[data-mc-list]');
+      const pagination = this.root.querySelector('[data-mc-pagination]');
 
       list.addEventListener('click', (event) => {
         const button = event.target.closest('[data-mc-action]');
@@ -76,13 +99,19 @@
         if (action === 'vote-up') this.vote(id, 1, button);
         if (action === 'vote-down') this.vote(id, -1, button);
       });
+
+      pagination.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-mc-page]');
+        if (!button || button.disabled) return;
+        this.changePage(Number(button.dataset.mcPage || 1));
+      });
     }
 
     renderForm() {
       const composer = this.root.querySelector('[data-mc-composer]');
 
       if (!this.user.authenticated && !this.settings.allowGuests) {
-        composer.innerHTML = '<div class="mc-notice">Sign in to leave a comment.</div>';
+        composer.innerHTML = `<div class="mc-notice">${this.escape(this.t('sign_in', {}, 'Sign in to leave a comment.'))}</div>`;
         return;
       }
 
@@ -91,24 +120,24 @@
 
       composer.innerHTML = `
         <form class="mc-form" data-mc-form>
-          <div class="mc-form-title">Leave a comment</div>
+          <div class="mc-form-title">${this.escape(this.t('leave_comment', {}, 'Leave a comment'))}</div>
 
           <div class="mc-replying" data-mc-replying hidden>
             <div class="mc-reply-preview">
               <strong data-mc-reply-label></strong>
               <span data-mc-reply-excerpt></span>
             </div>
-            <button type="button" class="mc-link-button" data-mc-cancel-reply>Cancel</button>
+            <button type="button" class="mc-link-button" data-mc-cancel-reply>${this.escape(this.t('cancel', {}, 'Cancel'))}</button>
           </div>
 
           ${needsGuest ? `
             <div class="mc-guest-fields">
               <label>
-                <span>Name</span>
+                <span>${this.escape(this.t('name', {}, 'Name'))}</span>
                 <input name="author_name" maxlength="190" autocomplete="name" required>
               </label>
               <label>
-                <span>Email</span>
+                <span>${this.escape(this.t('email', {}, 'Email'))}</span>
                 <input name="author_email" type="email" maxlength="254" autocomplete="email" required>
               </label>
             </div>
@@ -116,7 +145,7 @@
 
           <div class="mc-honeypot" aria-hidden="true">
             <label>
-              <span>Website</span>
+              <span>${this.escape(this.t('website', {}, 'Website'))}</span>
               <input name="website" type="text" tabindex="-1" autocomplete="off">
             </label>
           </div>
@@ -124,21 +153,21 @@
           <div class="mc-editor">
             <div class="mc-toolbar" data-mc-toolbar>
               <div class="mc-toolbar-main">
-                <button type="button" class="mc-tool" data-mc-link-toggle title="Insert link" aria-label="Insert link">🔗</button>
-                ${this.frequentEmoji.map((emoji) => `<button type="button" class="mc-tool mc-emoji" data-mc-emoji="${emoji}" title="Insert ${emoji}">${emoji}</button>`).join('')}
-                <button type="button" class="mc-tool" data-mc-emoji-toggle title="More emoji" aria-label="More emoji">＋</button>
+                <button type="button" class="mc-tool" data-mc-link-toggle title="${this.escape(this.t('insert_link', {}, 'Insert link'))}" aria-label="${this.escape(this.t('insert_link', {}, 'Insert link'))}">🔗</button>
+                ${this.frequentEmoji.map((emoji) => `<button type="button" class="mc-tool mc-emoji" data-mc-emoji="${emoji}">${emoji}</button>`).join('')}
+                <button type="button" class="mc-tool" data-mc-emoji-toggle title="${this.escape(this.t('more_emoji', {}, 'More emoji'))}" aria-label="${this.escape(this.t('more_emoji', {}, 'More emoji'))}">＋</button>
               </div>
 
               <div class="mc-link-panel" data-mc-link-panel hidden>
                 <label>
-                  <span>Link text</span>
+                  <span>${this.escape(this.t('link_text', {}, 'Link text'))}</span>
                   <input type="text" maxlength="200" placeholder="OpenAI" data-mc-link-text>
                 </label>
                 <label>
-                  <span>URL</span>
+                  <span>${this.escape(this.t('url', {}, 'URL'))}</span>
                   <input type="url" placeholder="https://example.com" data-mc-link-input>
                 </label>
-                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-link-insert>Insert link</button>
+                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-link-insert>${this.escape(this.t('insert_link_button', {}, 'Insert link'))}</button>
               </div>
 
               <div class="mc-emoji-panel" data-mc-emoji-panel hidden>
@@ -147,8 +176,8 @@
             </div>
 
             <label class="mc-comment-field">
-              <span class="mc-visually-hidden">Comment</span>
-              <textarea name="content" rows="5" maxlength="${maxLength}" placeholder="Write a comment…" required></textarea>
+              <span class="mc-visually-hidden">${this.escape(this.t('comment', {}, 'Comment'))}</span>
+              <textarea name="content" rows="5" maxlength="${maxLength}" placeholder="${this.escape(this.t('write_comment', {}, 'Write a comment…'))}" required></textarea>
             </label>
           </div>
 
@@ -159,7 +188,7 @@
           <div class="mc-captcha" data-mc-captcha></div>
 
           <div class="mc-actions">
-            <button type="submit" class="mc-btn mc-btn-primary">Post comment</button>
+            <button type="submit" class="mc-btn mc-btn-primary">${this.escape(this.t('post_comment', {}, 'Post comment'))}</button>
           </div>
         </form>
       `;
@@ -221,6 +250,20 @@
       });
     }
 
+    applyList(list) {
+      this.total = Number(list.total || 0);
+      this.pagination = list.pagination || { page: 1, pages: 1, perPage: Number(this.settings.threadsPerPage) || 20, totalThreads: 0 };
+      this.page = Number(this.pagination.page || 1);
+
+      const title = this.root.querySelector('[data-mc-title]');
+      if (title) {
+        title.textContent = `${this.t('comments', {}, 'Comments')} (${this.total})`;
+      }
+
+      this.renderComments(list.comments || []);
+      this.renderPagination();
+    }
+
     renderComments(comments) {
       const serverComments = Array.isArray(comments) ? comments.slice() : [];
       const serverIds = new Set(serverComments.map((item) => Number(item.id)));
@@ -257,14 +300,33 @@
       if (!this.comments.length) {
         list.innerHTML = `
           <div class="mc-empty">
-            <div class="mc-empty-title">No comments yet</div>
-            <div class="mc-empty-text">Be the first to join the discussion.</div>
+            <div class="mc-empty-title">${this.escape(this.t('no_comments', {}, 'No comments yet'))}</div>
+            <div class="mc-empty-text">${this.escape(this.t('no_comments_text', {}, 'Be the first to join the discussion.'))}</div>
           </div>
         `;
         return;
       }
 
       list.innerHTML = this.comments.map((comment) => this.renderComment(comment)).join('');
+    }
+
+    renderPagination() {
+      const target = this.root.querySelector('[data-mc-pagination]');
+      if (!target) return;
+
+      const page = Number(this.pagination.page || 1);
+      const pages = Number(this.pagination.pages || 1);
+
+      if (pages <= 1) {
+        target.innerHTML = '';
+        return;
+      }
+
+      target.innerHTML = `
+        <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>${this.escape(this.t('previous', {}, 'Previous'))}</button>
+        <span>${this.escape(this.t('page', { page, pages }, `Page ${page} of ${pages}`))}</span>
+        <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-page="${page + 1}" ${page >= pages ? 'disabled' : ''}>${this.escape(this.t('next', {}, 'Next'))}</button>
+      `;
     }
 
     renderComment(comment) {
@@ -274,7 +336,7 @@
       if (comment.deleted) {
         return `
           <article id="comment-${id}" class="mc-comment is-deleted" data-comment-id="${id}" style="--mc-depth:${depth}">
-            <div class="mc-deleted"><a class="mc-permalink" href="#comment-${id}">#${id}</a> Comment deleted</div>
+            <div class="mc-deleted"><a class="mc-permalink" href="#comment-${id}">#${id}</a> ${this.escape(this.t('comment_deleted', {}, 'Comment deleted'))}</div>
           </article>
         `;
       }
@@ -286,12 +348,12 @@
             ${this.renderReplyQuote(comment)}
             <div class="mc-inline-panel">
               <label>
-                <span class="mc-visually-hidden">Edit comment</span>
+                <span class="mc-visually-hidden">${this.escape(this.t('edit_comment', {}, 'Edit comment'))}</span>
                 <textarea rows="4" maxlength="${Number(this.settings.maxLength) || 5000}" data-mc-edit-text>${this.escape(comment.content)}</textarea>
               </label>
               <div class="mc-inline-actions">
-                <button type="button" class="mc-btn mc-btn-primary mc-btn-small" data-mc-action="save-edit" data-id="${id}">Save</button>
-                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-action="cancel-edit" data-id="${id}">Cancel</button>
+                <button type="button" class="mc-btn mc-btn-primary mc-btn-small" data-mc-action="save-edit" data-id="${id}">${this.escape(this.t('save', {}, 'Save'))}</button>
+                <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-action="cancel-edit" data-id="${id}">${this.escape(this.t('cancel', {}, 'Cancel'))}</button>
               </div>
             </div>
           </article>
@@ -300,20 +362,20 @@
 
       const isPendingPreview = Boolean(comment.localPending && comment.status === 'pending');
       const actions = isPendingPreview ? '' : [
-        comment.canReply ? this.actionButton('reply', id, 'Reply') : '',
-        comment.canEdit ? this.actionButton('edit', id, 'Edit') : '',
-        comment.canDelete ? this.actionButton('delete', id, 'Delete', 'is-danger') : ''
+        comment.canReply ? this.actionButton('reply', id, this.t('reply', {}, 'Reply')) : '',
+        comment.canEdit ? this.actionButton('edit', id, this.t('edit', {}, 'Edit')) : '',
+        comment.canDelete ? this.actionButton('delete', id, this.t('delete', {}, 'Delete'), 'is-danger') : ''
       ].filter(Boolean).join('');
 
       const deletePanel = this.deletingId === id ? `
         <div class="mc-delete-confirm" role="alert">
           <div>
-            <strong>Delete this comment?</strong>
-            <span>Replies will remain in the thread.</span>
+            <strong>${this.escape(this.t('delete_question', {}, 'Delete this comment?'))}</strong>
+            <span>${this.escape(this.t('delete_replies', {}, 'Replies will remain in the thread.'))}</span>
           </div>
           <div class="mc-inline-actions">
-            <button type="button" class="mc-btn mc-btn-danger mc-btn-small" data-mc-action="confirm-delete" data-id="${id}">Delete</button>
-            <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-action="cancel-delete" data-id="${id}">Cancel</button>
+            <button type="button" class="mc-btn mc-btn-danger mc-btn-small" data-mc-action="confirm-delete" data-id="${id}">${this.escape(this.t('delete', {}, 'Delete'))}</button>
+            <button type="button" class="mc-btn mc-btn-secondary mc-btn-small" data-mc-action="cancel-delete" data-id="${id}">${this.escape(this.t('cancel', {}, 'Cancel'))}</button>
           </div>
         </div>
       ` : '';
@@ -327,13 +389,13 @@
           <div class="mc-content">${comment.contentHtml}</div>
 
           ${isPendingPreview ? `
-            <div class="mc-pending-note">Awaiting moderation · visible only in this tab until reload</div>
+            <div class="mc-pending-note">${this.escape(this.t('awaiting_moderation', {}, 'Awaiting moderation'))}</div>
           ` : `
             <div class="mc-comment-footer">
               <div class="mc-comment-actions">${actions}</div>
-              <div class="mc-votes" aria-label="Comment rating">
-                <button type="button" class="mc-vote ${Number(votes.mine) === 1 ? 'is-active' : ''}" data-mc-action="vote-up" data-id="${id}" title="Like">👍 <span>${Number(votes.up) || 0}</span></button>
-                <button type="button" class="mc-vote ${Number(votes.mine) === -1 ? 'is-active' : ''}" data-mc-action="vote-down" data-id="${id}" title="Dislike">👎 <span>${Number(votes.down) || 0}</span></button>
+              <div class="mc-votes" aria-label="${this.escape(this.t('comment_rating', {}, 'Comment rating'))}">
+                <button type="button" class="mc-vote ${Number(votes.mine) === 1 ? 'is-active' : ''}" data-mc-action="vote-up" data-id="${id}" title="${this.escape(this.t('like', {}, 'Like'))}">👍 <span>${Number(votes.up) || 0}</span></button>
+                <button type="button" class="mc-vote ${Number(votes.mine) === -1 ? 'is-active' : ''}" data-mc-action="vote-down" data-id="${id}" title="${this.escape(this.t('dislike', {}, 'Dislike'))}">👎 <span>${Number(votes.down) || 0}</span></button>
               </div>
             </div>
           `}
@@ -344,16 +406,18 @@
     }
 
     renderCommentHeader(comment) {
-      const initial = this.escape((comment.author.name || 'G').trim().charAt(0).toUpperCase() || 'G');
+      const guest = this.t('guest', {}, 'Guest');
+      const initial = this.escape((comment.author.name || guest).trim().charAt(0).toUpperCase() || 'G');
+      const id = Number(comment.id);
 
       return `
         <header class="mc-comment-header">
           <span class="mc-avatar" aria-hidden="true">${initial}</span>
-          <span class="mc-author">${this.escape(comment.author.name || 'Guest')}</span>
-          <a class="mc-permalink" href="#comment-${Number(comment.id)}" title="Permalink to comment #${Number(comment.id)}">#${Number(comment.id)}</a>
+          <span class="mc-author">${this.escape(comment.author.name || guest)}</span>
+          <a class="mc-permalink" href="#comment-${id}" title="${this.escape(this.t('permalink', { id }, `Permalink to comment #${id}`))}">#${id}</a>
           <time>${this.escape(comment.created)}</time>
-          ${comment.localPending && comment.status === 'pending' ? '<span class="mc-pending-badge">Pending</span>' : ''}
-          ${comment.edited ? '<span class="mc-edited">edited</span>' : ''}
+          ${comment.localPending && comment.status === 'pending' ? `<span class="mc-pending-badge">${this.escape(this.t('pending', {}, 'Pending'))}</span>` : ''}
+          ${comment.edited ? `<span class="mc-edited">${this.escape(this.t('edited', {}, 'edited'))}</span>` : ''}
         </header>
       `;
     }
@@ -363,19 +427,19 @@
       if (!reply) return '';
 
       if (reply.deleted) {
-        return '<div class="mc-quote is-deleted">Reply to a deleted comment</div>';
+        return `<div class="mc-quote is-deleted">${this.escape(this.t('reply_deleted', {}, 'Reply to a deleted comment'))}</div>`;
       }
 
       return `
         <div class="mc-quote">
-          <strong>${this.escape(reply.author || 'Guest')}</strong>
+          <strong>${this.escape(reply.author || this.t('guest', {}, 'Guest'))}</strong>
           <span>${this.escape(reply.excerpt || '')}</span>
         </div>
       `;
     }
 
     actionButton(action, id, label, extraClass = '') {
-      return `<button type="button" class="mc-action ${extraClass}" data-mc-action="${action}" data-id="${id}">${label}</button>`;
+      return `<button type="button" class="mc-action ${extraClass}" data-mc-action="${action}" data-id="${id}">${this.escape(label)}</button>`;
     }
 
     setReply(id) {
@@ -391,7 +455,9 @@
         const name = target && target.author ? target.author.name : '';
         const text = target && target.content ? target.content.replace(/\s+/g, ' ').trim() : '';
 
-        label.textContent = name ? `Replying to ${name}` : `Replying to #${this.parent}`;
+        label.textContent = name
+          ? this.t('replying_to', { name }, `Replying to ${name}`)
+          : this.t('replying_to_id', { id: this.parent }, `Replying to #${this.parent}`);
         excerpt.textContent = text.length > 160 ? text.slice(0, 157) + '…' : text;
         note.hidden = false;
       } else {
@@ -451,14 +517,15 @@
       const submit = form.querySelector('[type="submit"]');
 
       if (this.settings.captcha && this.settings.captcha.enabled && !this.captchaToken) {
-        this.showStatus('Please complete the CAPTCHA.', true);
+        this.showStatus(this.t('captcha_required', {}, 'Please complete the CAPTCHA.'), true);
         return;
       }
 
-      this.setButtonBusy(submit, true, 'Posting…');
+      this.setButtonBusy(submit, true, this.t('posting', {}, 'Posting…'));
       this.showStatus('');
 
       try {
+        const parentBeforeSubmit = this.parent;
         const created = await this.request('web/comment/create', {
           resource: this.resource,
           parent: this.parent,
@@ -479,11 +546,16 @@
 
         this.setReply(0);
         this.resetCaptcha();
+
+        if (!parentBeforeSubmit && created.comment && created.comment.status === 'published') {
+          this.page = 1;
+        }
+
         await this.reload();
         this.showStatus(
           created.comment && created.comment.status === 'pending'
-            ? 'Comment submitted and is awaiting moderation.'
-            : 'Comment submitted.'
+            ? this.t('submitted_pending', {}, 'Comment submitted and is awaiting moderation.')
+            : this.t('submitted', {}, 'Comment submitted.')
         );
         this.root.dispatchEvent(new CustomEvent('comments:created', { bubbles: true }));
       } catch (error) {
@@ -500,17 +572,17 @@
       const content = textarea ? textarea.value.trim() : '';
 
       if (!content) {
-        this.showStatus('Comment cannot be empty.', true);
+        this.showStatus(this.t('comment_empty', {}, 'Comment cannot be empty.'), true);
         return;
       }
 
-      this.setButtonBusy(button, true, 'Saving…');
+      this.setButtonBusy(button, true, this.t('saving', {}, 'Saving…'));
 
       try {
         await this.request('web/comment/update', { id, content }, 'POST');
         this.editingId = 0;
         await this.reload();
-        this.showStatus('Comment updated.');
+        this.showStatus(this.t('updated', {}, 'Comment updated.'));
         this.root.dispatchEvent(new CustomEvent('comments:updated', { bubbles: true, detail: { id } }));
       } catch (error) {
         this.showStatus(this.humanError(error), true);
@@ -520,13 +592,13 @@
     }
 
     async deleteComment(id, button) {
-      this.setButtonBusy(button, true, 'Deleting…');
+      this.setButtonBusy(button, true, this.t('deleting', {}, 'Deleting…'));
 
       try {
         await this.request('web/comment/delete', { id }, 'POST');
         this.deletingId = 0;
         await this.reload();
-        this.showStatus('Comment deleted.');
+        this.showStatus(this.t('deleted', {}, 'Comment deleted.'));
         this.root.dispatchEvent(new CustomEvent('comments:deleted', { bubbles: true, detail: { id } }));
       } catch (error) {
         this.showStatus(this.humanError(error), true);
@@ -554,9 +626,30 @@
       }
     }
 
+    async changePage(page) {
+      const pages = Number(this.pagination.pages || 1);
+      page = Math.max(1, Math.min(pages, Number(page) || 1));
+      if (page === this.page) return;
+
+      this.page = page;
+      this.setLoading(true);
+
+      try {
+        await this.reload();
+        this.root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        this.showStatus(this.humanError(error), true);
+      } finally {
+        this.setLoading(false);
+      }
+    }
+
     async reload() {
-      const list = await this.request('web/comment/getlist', { resource: this.resource, limit: 200 });
-      this.renderComments(list.comments || []);
+      const list = await this.request('web/comment/getlist', {
+        resource: this.resource,
+        page: this.page
+      });
+      this.applyList(list);
     }
 
     async initCaptcha() {
@@ -629,25 +722,7 @@
 
     humanError(error) {
       const code = error && error.message ? error.message : 'unknown_error';
-      const messages = {
-        csrf_invalid: 'Your session expired. Reload the page and try again.',
-        authentication_required: 'Sign in to leave a comment.',
-        content_required: 'Comment cannot be empty.',
-        content_too_long: 'Comment is too long.',
-        author_name_required: 'Please enter your name.',
-        author_name_too_long: 'The name is too long.',
-        author_email_required: 'Please enter your email address.',
-        author_email_invalid: 'Please enter a valid email address.',
-        rate_limit_exceeded: 'Too many comments. Please try again later.',
-        captcha_failed: 'CAPTCHA verification failed. Please try again.',
-        spam_detected: 'The comment could not be submitted.',
-        permission_denied: 'You cannot modify this comment.',
-        edit_window_expired: 'The editing window for this comment has expired.',
-        comment_not_found: 'Comment not found.',
-        vote_invalid: 'Invalid vote.'
-      };
-
-      return messages[code] || code.replace(/_/g, ' ');
+      return this.t('error.' + code, {}, code.replace(/_/g, ' '));
     }
 
     showStatus(message, isError = false) {
