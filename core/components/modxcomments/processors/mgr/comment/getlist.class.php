@@ -1,14 +1,7 @@
 <?php
-use MODX\Revolution\Processors\Model\GetListProcessor;
-use MODX\Revolution\modResource;
-use MODX\Revolution\modUser;
-use ModxComments\Model\Comment;
-use xPDO\Om\xPDOObject;
-use xPDO\Om\xPDOQuery;
-
-class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
+class ModxCommentsMgrCommentGetListProcessor extends modObjectGetListProcessor
 {
-    public $classKey=Comment::class;
+    public $classKey='ModxCommentsComment';
     public $languageTopics=array('modxcomments:default');
     public $defaultSortField='thread_id';
     public $defaultSortDirection='DESC';
@@ -16,18 +9,7 @@ class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
     public function initialize()
     {
         $corePath=$this->modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
-        $added=$this->modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
-
-        if(!$added || !class_exists(Comment::class)){
-            $expected=$corePath.'src/Model/Comment.php';
-            $this->modx->log(
-                \MODX\Revolution\modX::LOG_LEVEL_ERROR,
-                '[ModxComments] MODX 3 model is not available. Expected class '
-                .Comment::class.' and file '.$expected
-            );
-            return '[ModxComments] Model class could not be loaded. Check MODX error log.';
-        }
-
+        $this->modx->addPackage('modxcomments',$corePath.'model/');
         return parent::initialize();
     }
 
@@ -80,7 +62,7 @@ class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
     {
         $row=$object->toArray();
 
-        $resource=$this->modx->getObject(modResource::class,(int)$object->get('resource_id'));
+        $resource=$this->modx->getObject('modResource',(int)$object->get('resource_id'));
         $row['resource_title']=$resource
             ? $resource->get('pagetitle').' (#'.$resource->get('id').')'
             : '#'.$object->get('resource_id');
@@ -96,7 +78,7 @@ class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
 
         $parentId=(int)$object->get('parent_id');
         if($parentId>0){
-            $parent=$this->modx->getObject(Comment::class,$parentId);
+            $parent=$this->modx->getObject('ModxCommentsComment',$parentId);
             if($parent){
                 $row['parent_author']=(string)$parent->get('author_name');
                 $parentText=trim(preg_replace('/\s+/u',' ',strip_tags((string)$parent->get('content'))));
@@ -108,7 +90,7 @@ class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
 
         $userId=(int)$object->get('user_id');
         if($userId>0){
-            $user=$this->modx->getObject(modUser::class,$userId);
+            $user=$this->modx->getObject('modUser',$userId);
             if($user){
                 $row['is_admin']=(bool)$user->get('sudo') || $user->isMember('Administrator');
             }
