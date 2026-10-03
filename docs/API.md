@@ -1,4 +1,4 @@
-# Public API contract — v0.2 beta5
+# Public API contract — v0.2 beta13
 
 Base URL: `/assets/components/modxcomments/connector.php`
 
@@ -6,27 +6,45 @@ All responses use the standard MODX processor envelope.
 
 ## GET web/init
 
-Returns CSRF, current user, public settings, edit window and CAPTCHA public configuration.
+Returns CSRF, current user, public settings, CAPTCHA configuration and the frontend lexicon map (`i18n`).
 
 ## GET web/comment/getlist
 
-Returns published/deleted tree rows. Every published item can include:
+Parameters:
 
-- `canReply`, `canEdit`, `canDelete`;
-- `replyTo` with parent author + excerpt;
-- `votes.up`, `votes.down`, `votes.score`, `votes.mine`.
+- `resource`
+- `context`
+- `page` (root-thread page, default 1)
+- `per_page` (optional override, maximum 100)
+
+Returns complete reply trees for the selected root-thread page:
+
+- `total` — number of published comments (replies included);
+- `totalThreads`;
+- `comments`;
+- `pagination.page/pages/perPage/totalThreads`.
+
+Every comment can include `canReply`, `canEdit`, `canDelete`, `replyTo` and vote data.
+
+## GET web/comment/count
+
+Returns the current number of published comments for a resource:
+
+```json
+{"total":34}
+```
 
 ## POST web/comment/create
 
 Requires `X-ModxComments-CSRF`.
 
-Guest body fields include required `author_name` and `author_email`.
+Guests require `author_name` and `author_email`. The hidden `website` field is a honeypot and must remain empty.
 
-The hidden `website` field is a honeypot and must remain empty.
+New guest comments receive an HttpOnly ownership cookie. Only a one-way ownership hash is stored in the comment row.
 
 ## POST web/comment/update
 
-Authenticated owner only, within `modxcomments.edit_time`.
+The comment owner only, within `modxcomments.edit_time`. Authenticated owners are matched by MODX user ID; new guest comments are matched by the ownership cookie/hash.
 
 ```json
 {"id":10,"content":"Updated text"}
@@ -34,13 +52,7 @@ Authenticated owner only, within `modxcomments.edit_time`.
 
 ## POST web/comment/delete
 
-Authenticated owner only, within `modxcomments.edit_time`.
-
-```json
-{"id":10}
-```
-
-Deletion is soft; descendants remain in the thread.
+Same ownership/edit-window rules as update. Deletion is soft and descendants remain.
 
 ## POST web/comment/vote
 
@@ -50,4 +62,13 @@ Requires CSRF.
 {"id":10,"value":1}
 ```
 
-`value` is `1` for 👍 and `-1` for 👎. Repeating the same vote removes it; voting the opposite direction switches it.
+`1` is 👍 and `-1` is 👎. Repeating the same vote removes it; the opposite vote switches it.
+
+## Lifecycle events
+
+- `ModxCommentsBeforeCommentCreate` — receives mutable `data` by reference; returning boolean `false` cancels creation.
+- `ModxCommentsOnCommentCreate`
+- `ModxCommentsOnCommentUpdate`
+- `ModxCommentsOnCommentDelete`
+- `ModxCommentsOnCommentPublish`
+- `ModxCommentsOnCommentVote`
