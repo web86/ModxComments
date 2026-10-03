@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0-pl
+- First stable ModxComments release for MODX Revolution 2.8.x.
+- Promoted directly from the live-tested 0.2.0-beta14 codebase with no runtime feature changes.
+- Includes threaded comments, guest/user posting, edit/delete ownership, moderation, voting, emoji/link toolbar, reply quotes, notifications, pagination, count API, EN/RU frontend localization, utf8mb4 emoji support, lifecycle events, manager thread view, autoscroll and relative timestamps.
+
 ## 0.2.0-beta14
 - Smooth-scroll to a newly submitted comment after the list refreshes.
 - Briefly highlight the submitted comment after autoscroll.
