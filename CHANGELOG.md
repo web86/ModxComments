@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-beta5 — MODX 3
+- Commit the xPDO 3 model classes and metadata into the repository instead of generating them during normal transport builds.
+- Remove parseSchema() from the regular transport build path.
+- Add exact PHP file and line information to manager connector fatal diagnostics.
+- Keep direct manager processor dispatch from beta4.
+
 ## 0.3.0-beta4 — MODX 3
 - Replace manager connector request handling with a direct, explicit processor dispatcher.
 - Whitelist manager actions and map them to concrete processor files/classes.
