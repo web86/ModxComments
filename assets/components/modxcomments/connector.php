@@ -38,13 +38,13 @@ if(strtoupper(isset($_SERVER['REQUEST_METHOD'])?$_SERVER['REQUEST_METHOD']:'GET'
 
 $action=isset($input['action'])?strtolower(trim((string)$input['action'])):'';
 $allowed=array(
-    'web/init'=>'GET',
-    'web/comment/getlist'=>'GET',
-    'web/comment/count'=>'GET',
-    'web/comment/create'=>'POST',
-    'web/comment/update'=>'POST',
-    'web/comment/delete'=>'POST',
-    'web/comment/vote'=>'POST',
+    'web/init'=>array('GET','ModxComments\\Processors\\Web\\Init'),
+    'web/comment/getlist'=>array('GET','ModxComments\\Processors\\Web\\Comment\\GetList'),
+    'web/comment/count'=>array('GET','ModxComments\\Processors\\Web\\Comment\\Count'),
+    'web/comment/create'=>array('POST','ModxComments\\Processors\\Web\\Comment\\Create'),
+    'web/comment/update'=>array('POST','ModxComments\\Processors\\Web\\Comment\\Update'),
+    'web/comment/delete'=>array('POST','ModxComments\\Processors\\Web\\Comment\\Delete'),
+    'web/comment/vote'=>array('POST','ModxComments\\Processors\\Web\\Comment\\Vote'),
 );
 
 if(!isset($allowed[$action])){
@@ -54,9 +54,9 @@ if(!isset($allowed[$action])){
 }
 
 $method=strtoupper(isset($_SERVER['REQUEST_METHOD'])?$_SERVER['REQUEST_METHOD']:'GET');
-if($method!==$allowed[$action]){
+if($method!==$allowed[$action][0]){
     http_response_code(405);
-    header('Allow: '.$allowed[$action]);
+    header('Allow: '.$allowed[$action][0]);
     echo json_encode(array('success'=>false,'message'=>'method_not_allowed','object'=>array()));
     exit;
 }
@@ -65,7 +65,9 @@ header('Cache-Control: no-store, private, max-age=0');
 header('Pragma: no-cache');
 
 $corePath=$modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
-$response=$modx->runProcessor($action,$input,array('processors_path'=>$corePath.'processors/'));
+$modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
+$processorClass=$allowed[$action][1];
+$response=$modx->runProcessor($processorClass,$input);
 
 if(!$response){
     http_response_code(500);
