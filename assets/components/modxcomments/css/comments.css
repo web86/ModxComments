@@ -619,6 +619,6 @@
   white-space: nowrap;
 }
 
-.mc-comment-header:has(.mc-admin-badge) .mc-author {
+.mc-admin-badge + .mc-author {
   font-weight: 700;
 }
