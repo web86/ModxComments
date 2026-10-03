@@ -63,3 +63,5 @@ $_lang['mc.error.edit_window_expired']='Время редактирования 
 $_lang['mc.error.comment_not_found']='Комментарий не найден.';
 $_lang['mc.error.vote_invalid']='Некорректный голос.';
 $_lang['mc.error.comment_create_cancelled']='Отправка комментария была отменена.';
+
+$_lang['mc.admin']='Админ';
