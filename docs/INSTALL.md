@@ -47,7 +47,7 @@ Mail delivery uses the normal MODX mail/SMTP configuration.
 
 ## Upgrade
 
-Install a newer transport package over the previous beta. Comment data is preserved. The installer performs required ModxComments-only schema/charset migrations.
+Install a newer ModxComments transport package over the previous release or beta. Comment data is preserved. The installer performs required ModxComments-only schema/charset migrations.
 
 ## Uninstall
 
@@ -60,7 +60,7 @@ Uninstall removes the component registration, settings and manager menu, but int
 
 ## Guest editing
 
-New guest comments receive an HttpOnly ownership cookie. During `modxcomments.edit_time`, that same browser can edit/delete its own guest comments. Comments created before beta13 do not have an ownership hash and therefore remain non-editable for guests.
+New guest comments receive an HttpOnly ownership cookie. During `modxcomments.edit_time`, that same browser can edit/delete its own guest comments. Comments created before 0.2.0-beta13 do not have an ownership hash and therefore remain non-editable for guests.
 
 ## Email templates
 
