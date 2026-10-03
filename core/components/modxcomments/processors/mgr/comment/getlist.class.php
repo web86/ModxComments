@@ -16,7 +16,18 @@ class ModxCommentsMgrCommentGetListProcessor extends GetListProcessor
     public function initialize()
     {
         $corePath=$this->modx->getOption('modxcomments.core_path',null,MODX_CORE_PATH.'components/modxcomments/');
-        $this->modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
+        $added=$this->modx->addPackage('ModxComments\\Model',$corePath.'src/',null,'ModxComments\\');
+
+        if(!$added || !class_exists(Comment::class)){
+            $expected=$corePath.'src/Model/Comment.php';
+            $this->modx->log(
+                \MODX\Revolution\modX::LOG_LEVEL_ERROR,
+                '[ModxComments] MODX 3 model is not available. Expected class '
+                .Comment::class.' and file '.$expected
+            );
+            return '[ModxComments] Model class could not be loaded. Check MODX error log.';
+        }
+
         return parent::initialize();
     }
 
