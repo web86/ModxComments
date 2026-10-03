@@ -1,54 +1,64 @@
 <?php
+use MODX\Revolution\modCategory;
+use MODX\Revolution\modChunk;
+use MODX\Revolution\modSnippet;
+use MODX\Revolution\modX;
+use MODX\Revolution\Transport\modPackageBuilder;
+use xPDO\Transport\xPDOTransport;
+use xPDO\xPDO;
+
 $root=dirname(__DIR__);
 
 require_once $root.'/config.core.php';
-require_once MODX_CORE_PATH.'config/'.MODX_CONFIG_KEY.'.inc.php';
-require_once MODX_CORE_PATH.'model/modx/modx.class.php';
-require_once MODX_CORE_PATH.'model/modx/transport/modpackagebuilder.class.php';
+require_once MODX_CORE_PATH.'vendor/autoload.php';
 
-$modx=new modX();
+$modx=modX::getInstance(null,array(
+    xPDO::OPT_CONN_INIT=>array(xPDO::OPT_CONN_MUTABLE=>true),
+));
 $modx->initialize('mgr');
 $modx->setLogLevel(modX::LOG_LEVEL_INFO);
 $modx->setLogTarget('ECHO');
 
 $corePath=$root.'/core/components/modxcomments/';
-$modelPath=$corePath.'model/';
-$schema=$modelPath.'schema/modxcomments.mysql.schema.xml';
+$modelPath=$corePath.'src/';
+$schema=$corePath.'model/schema/modxcomments.mysql.schema.xml';
 
 $manager=$modx->getManager();
 $generator=$manager->getGenerator();
-if(!$generator->parseSchema($schema,$modelPath)){
-    fwrite(STDERR,"Could not parse ModxComments schema\n");
+if(!$generator->parseSchema($schema,$modelPath,array(
+    'compile'=>0,
+    'update'=>1,
+    'regenerate'=>1,
+    'namespacePrefix'=>'ModxComments\\',
+))){
+    fwrite(STDERR,"Could not parse ModxComments MODX 3 schema\n");
     exit(1);
 }
 
 $readPackageText=function($path,$fallback) use ($modx){
     if(is_file($path) && is_readable($path)){
         $data=file_get_contents($path);
-        if($data!==false && trim($data)!==''){
-            return $data;
-        }
+        if($data!==false && trim($data)!=='') return $data;
     }
-
     $modx->log(modX::LOG_LEVEL_WARN,'[ModxComments] Package metadata file is missing/unreadable: '.$path.'. Using embedded fallback.');
     return $fallback;
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','0.2.0','beta14');
+$builder->createPackage('modxcomments','0.3.0','beta1');
 $builder->registerNamespace('modxcomments',false,true,'{core_path}components/modxcomments/');
 
-$category=$modx->newObject('modCategory');
+$category=$modx->newObject(modCategory::class);
 $category->set('category','ModxComments');
 
 $snippetSource=file_get_contents($root.'/core/components/modxcomments/elements/snippets/snippet.modxcomments.php');
 $snippetSource=preg_replace('/^\s*<\?(?:php)?\s*/i','',$snippetSource);
 $snippetSource=preg_replace('/\?>\s*$/','',$snippetSource);
 
-$snippet=$modx->newObject('modSnippet');
+$snippet=$modx->newObject(modSnippet::class);
 $snippet->fromArray(array(
     'name'=>'ModxComments',
-    'description'=>'AJAX-first comments for MODX resources.',
+    'description'=>'AJAX-first comments for MODX 3 resources.',
     'snippet'=>trim($snippetSource),
 ),'',true,true);
 $category->addMany($snippet);
@@ -59,9 +69,8 @@ $emailChunks=array(
     'ModxCommentsEmailReplySubject'=>'email.reply.subject.tpl',
     'ModxCommentsEmailReplyBody'=>'email.reply.body.tpl',
 );
-
 foreach($emailChunks as $chunkName=>$chunkFile){
-    $chunk=$modx->newObject('modChunk');
+    $chunk=$modx->newObject(modChunk::class);
     $chunk->fromArray(array(
         'name'=>$chunkName,
         'description'=>'ModxComments email notification template.',
@@ -103,19 +112,14 @@ $vehicle->resolve('php',array(
 
 $builder->putVehicle($vehicle);
 $builder->setPackageAttributes(array(
-    'license'=>$readPackageText(
-        $root.'/LICENSE',
-        "ModxComments\n\nCopyright (c) 2026 web86.\nAll rights reserved.\n"
-    ),
-    'readme'=>$readPackageText(
-        $root.'/docs/INSTALL.md',
-        "ModxComments installation\n\nInstall the package, clear MODX cache and add [[ModxComments]] to a resource/template.\n"
-    ),
-    'changelog'=>$readPackageText(
-        $root.'/CHANGELOG.md',
-        "ModxComments 0.2.0-beta14\n- Frontend localization, guest ownership, thread pagination/count, email Chunks and extended events.\n"
+    'license'=>$readPackageText($root.'/LICENSE',"ModxComments\n\nCopyright (c) 2026 web86.\nAll rights reserved.\n"),
+    'readme'=>$readPackageText($root.'/docs/INSTALL.md',"ModxComments for MODX 3\n\nInstall the package and add [[ModxComments]].\n"),
+    'changelog'=>$readPackageText($root.'/CHANGELOG.md',"ModxComments 0.3.0-beta1 — MODX 3 branch.\n"),
+    'requires'=>array(
+        'php'=>'>=7.4.0',
+        'modx'=>'>=3.0.0',
     ),
 ));
 $builder->pack();
 
-echo "Built ModxComments 0.2.0-beta14 transport package.\n";
+echo "Built ModxComments 0.3.0-beta1 transport package for MODX 3.\n";
