@@ -22,7 +22,7 @@ class Count extends Processor
             $context=$this->comments->cleanContextKey($this->getProperty('context','web'));
 
             return $this->success('',[
-                'total'=>$this->comments->getCommentCount($resource,$context),
+                'total'=>$this->comments->getCommentCount($resource,$context,(string)$this->getProperty('resource_token','')),
             ]);
         }catch(\Throwable $e){
             return $this->failure($e->getMessage());
