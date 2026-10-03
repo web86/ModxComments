@@ -5,7 +5,7 @@
 The same transport package supports:
 
 - MODX Revolution 2.8.x
-- MODX Revolution 3.x
+- MODX Revolution 3.0–3.2
 
 ## Building the universal transport
 
@@ -23,7 +23,7 @@ Output:
 modxcomments-1.0.0-beta1
 ```
 
-Use the **same ZIP** on MODX 2 or MODX 3.
+Use the **same ZIP** on MODX 2 or MODX 3.0–3.2.
 
 ## Install / upgrade
 
