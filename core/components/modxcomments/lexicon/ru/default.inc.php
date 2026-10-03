@@ -79,3 +79,6 @@ $_lang['modxcomments.thread_root']='Начало ветки';
 
 $_lang['setting_modxcomments.threads_per_page']='Корневых веток на странице';
 $_lang['setting_modxcomments.threads_per_page_desc']='Количество корневых веток комментариев на одной странице фронтенда. Ответы выбранных веток загружаются целиком, поэтому дерево ответов не разрезается между страницами. По умолчанию: 20.';
+
+$_lang['setting_modxcomments.resource_signing_key']='Ключ подписи ресурсов';
+$_lang['setting_modxcomments.resource_signing_key_desc']='Секретный HMAC-ключ, связывающий публичный API комментариев с ресурсами, где выведен сниппет ModxComments. Генерируется автоматически при установке. Не публикуйте и не меняйте без необходимости.';
