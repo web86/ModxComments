@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-beta1 — installation
+# ModxComments 1.0.0-beta2 — installation
 
 ## Compatibility
 
@@ -20,7 +20,7 @@ php _build/build.transport.php
 Output:
 
 ```text
-modxcomments-1.0.0-beta1
+modxcomments-1.0.0-beta2
 ```
 
 Use the **same ZIP** on MODX 2 or MODX 3.0–3.2.
