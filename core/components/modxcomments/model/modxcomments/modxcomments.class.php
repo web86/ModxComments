@@ -1,4 +1,11 @@
 <?php
+use MODX\Revolution\modX;
+use MODX\Revolution\modResource;
+use MODX\Revolution\modChunk;
+use MODX\Revolution\Mail\modMail;
+use ModxComments\Model\Comment;
+use ModxComments\Model\Vote;
+
 class ModxComments
 {
     protected $modx;
@@ -8,7 +15,7 @@ class ModxComments
     {
         $this->modx = $modx;
         $corePath = $modx->getOption('modxcomments.core_path', null, MODX_CORE_PATH . 'components/modxcomments/');
-        $modelPath = $corePath . 'model/';
+        $modelPath = $corePath . 'src/';
 
         $defaults = array(
             'corePath' => $corePath,
@@ -51,7 +58,7 @@ class ModxComments
         );
 
         $this->config = array_merge($defaults, $settings, $config);
-        $modx->addPackage('modxcomments', $modelPath);
+        $modx->addPackage('ModxComments\\Model', $modelPath, null, 'ModxComments\\');
     }
 
     public function getPublicConfig()
@@ -138,22 +145,22 @@ class ModxComments
             'status:IN' => array('published', 'deleted'),
         );
 
-        $totalThreads = (int) $this->modx->getCount('ModxCommentsComment', $rootCriteria);
+        $totalThreads = (int) $this->modx->getCount(Comment::class, $rootCriteria);
         $pages = max(1, (int) ceil($totalThreads / $perPage));
         if ($page > $pages) $page = $pages;
 
-        $rootsQuery = $this->modx->newQuery('ModxCommentsComment');
+        $rootsQuery = $this->modx->newQuery(Comment::class);
         $rootsQuery->where($rootCriteria);
         $rootsQuery->sortby('createdon', 'DESC');
         $rootsQuery->sortby('id', 'DESC');
         $rootsQuery->limit($perPage, ($page - 1) * $perPage);
 
         $items = array();
-        foreach ($this->modx->getCollection('ModxCommentsComment', $rootsQuery) as $root) {
+        foreach ($this->modx->getCollection(Comment::class, $rootsQuery) as $root) {
             $threadId = (int) $root->get('thread_id');
             if ($threadId < 1) $threadId = (int) $root->get('id');
 
-            $threadQuery = $this->modx->newQuery('ModxCommentsComment');
+            $threadQuery = $this->modx->newQuery(Comment::class);
             $threadQuery->where(array(
                 'resource_id' => $resourceId,
                 'context_key' => $contextKey,
@@ -162,7 +169,7 @@ class ModxComments
             ));
             $threadQuery->sortby('path', 'ASC');
 
-            foreach ($this->modx->getCollection('ModxCommentsComment', $threadQuery) as $comment) {
+            foreach ($this->modx->getCollection(Comment::class, $threadQuery) as $comment) {
                 $items[] = $this->serializeComment($comment);
             }
         }
@@ -185,7 +192,7 @@ class ModxComments
         $resourceId = (int) $resourceId;
         $this->assertResource($resourceId, $contextKey);
 
-        return (int) $this->modx->getCount('ModxCommentsComment', array(
+        return (int) $this->modx->getCount(Comment::class, array(
             'resource_id' => $resourceId,
             'context_key' => $contextKey,
             'status' => 'published',
@@ -277,7 +284,7 @@ class ModxComments
         $parentPath = '';
 
         if ($parentId > 0) {
-            $parent = $this->modx->getObject('ModxCommentsComment', array(
+            $parent = $this->modx->getObject(Comment::class, array(
                 'id' => $parentId,
                 'resource_id' => $resourceId,
                 'context_key' => $contextKey,
@@ -297,7 +304,7 @@ class ModxComments
             $parentPath = (string) $parent->get('path');
         }
 
-        $comment = $this->modx->newObject('ModxCommentsComment');
+        $comment = $this->modx->newObject(Comment::class);
         $comment->fromArray(array(
             'resource_id' => $resourceId,
             'context_key' => $contextKey,
@@ -397,13 +404,13 @@ class ModxComments
         if ($id < 1) throw new InvalidArgumentException('comment_required');
         if (!in_array($value, array(-1, 1), true)) throw new InvalidArgumentException('vote_invalid');
 
-        $comment = $this->modx->getObject('ModxCommentsComment', $id);
+        $comment = $this->modx->getObject(Comment::class, $id);
         if (!$comment || $comment->get('status') !== 'published') {
             throw new InvalidArgumentException('comment_not_found');
         }
 
         $voterHash = $this->getVoterHash();
-        $vote = $this->modx->getObject('ModxCommentsVote', array(
+        $vote = $this->modx->getObject(Vote::class, array(
             'comment_id' => $id,
             'voter_hash' => $voterHash,
         ));
@@ -419,7 +426,7 @@ class ModxComments
                 $myVote = $value;
             }
         } else {
-            $vote = $this->modx->newObject('ModxCommentsVote');
+            $vote = $this->modx->newObject(Vote::class);
             $vote->fromArray(array(
                 'comment_id' => $id,
                 'voter_hash' => $voterHash,
@@ -454,7 +461,7 @@ class ModxComments
         if ($comment->get('status') !== 'published') return false;
         if ($comment->get('reply_notifiedon')) return false;
 
-        $parent = $this->modx->getObject('ModxCommentsComment', (int) $comment->get('parent_id'));
+        $parent = $this->modx->getObject(Comment::class, (int) $comment->get('parent_id'));
         if (!$parent) return false;
 
         $email = trim((string) $parent->get('author_email'));
@@ -503,7 +510,7 @@ class ModxComments
             return false;
         }
 
-        $resource = $this->modx->getObject('modResource', (int) $comment->get('resource_id'));
+        $resource = $this->modx->getObject(modResource::class, (int) $comment->get('resource_id'));
         $placeholders = array(
             'status' => (string) $comment->get('status'),
             'resource_title' => $resource ? (string) $resource->get('pagetitle') : ('#' . $comment->get('resource_id')),
@@ -531,7 +538,7 @@ class ModxComments
 
     protected function renderEmailChunk($name, array $placeholders, $fallback)
     {
-        $chunk = $this->modx->getObject('modChunk', array('name' => $name));
+        $chunk = $this->modx->getObject(modChunk::class, array('name' => $name));
         if (!$chunk) return $fallback;
 
         $rendered = $chunk->process($placeholders);
@@ -602,7 +609,7 @@ class ModxComments
     {
         if ($id < 1) throw new InvalidArgumentException('comment_required');
 
-        $comment = $this->modx->getObject('ModxCommentsComment', $id);
+        $comment = $this->modx->getObject(Comment::class, $id);
         if (!$comment || $comment->get('status') === 'deleted') {
             throw new InvalidArgumentException('comment_not_found');
         }
@@ -675,7 +682,7 @@ class ModxComments
     {
         if ($resourceId < 1) throw new InvalidArgumentException('resource_required');
 
-        $resource = $this->modx->getObject('modResource', array(
+        $resource = $this->modx->getObject(modResource::class, array(
             'id' => $resourceId,
             'context_key' => $contextKey,
             'deleted' => 0,
@@ -705,13 +712,13 @@ class ModxComments
         $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
         if ($ip === '') return;
 
-        $c = $this->modx->newQuery('ModxCommentsComment');
+        $c = $this->modx->newQuery(Comment::class);
         $c->where(array(
             'ip_hash' => $this->hashClientValue($ip),
             'createdon:>=' => date('Y-m-d H:i:s', time() - (int) $this->config['rateLimitWindow']),
         ));
 
-        if ((int) $this->modx->getCount('ModxCommentsComment', $c) >= (int) $this->config['rateLimitCount']) {
+        if ((int) $this->modx->getCount(Comment::class, $c) >= (int) $this->config['rateLimitCount']) {
             throw new RuntimeException('rate_limit_exceeded');
         }
     }
@@ -783,16 +790,16 @@ class ModxComments
         $commentId = (int) $commentId;
         if ($voterHash === null) $voterHash = $this->getVoterHash();
 
-        $up = (int) $this->modx->getCount('ModxCommentsVote', array(
+        $up = (int) $this->modx->getCount(Vote::class, array(
             'comment_id' => $commentId,
             'value' => 1,
         ));
-        $down = (int) $this->modx->getCount('ModxCommentsVote', array(
+        $down = (int) $this->modx->getCount(Vote::class, array(
             'comment_id' => $commentId,
             'value' => -1,
         ));
 
-        $mine = $this->modx->getObject('ModxCommentsVote', array(
+        $mine = $this->modx->getObject(Vote::class, array(
             'comment_id' => $commentId,
             'voter_hash' => $voterHash,
         ));
@@ -862,7 +869,7 @@ class ModxComments
 
         $parentId = (int) $comment->get('parent_id');
         if ($parentId > 0) {
-            $parent = $this->modx->getObject('ModxCommentsComment', $parentId);
+            $parent = $this->modx->getObject(Comment::class, $parentId);
             if ($parent) {
                 $parentText = trim(preg_replace('/\s+/u', ' ', (string) $parent->get('content')));
                 if ($this->stringLength($parentText) > 180) {
