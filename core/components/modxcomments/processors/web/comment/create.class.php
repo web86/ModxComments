@@ -29,8 +29,8 @@ class ModxCommentsCommentCreateProcessor extends modProcessor
             return $this->failure($e->getMessage());
         } catch (RuntimeException $e) {
             return $this->failure($e->getMessage());
-        } catch (Exception $e) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] ' . $e->getMessage());
+        } catch (Throwable $e) {
+            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModxComments] Public API error: ' . $e->getMessage());
             return $this->failure('server_error');
         }
     }
