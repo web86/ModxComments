@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta2 — Unified MODX 2.8 + MODX 3.0–3.2
+- Restore the entire legacy flat processor layer from the tested MODX 2 branch.
+- Fix MODX 2 manager CMP error caused by MODX 3 processor base classes leaking into `core/components/modxcomments/processors/`.
+- Keep MODX 3 namespaced processors isolated under `src/Processors/`.
+- Public and manager connectors continue selecting the appropriate processor layer at runtime.
+
 ## 1.0.0-beta1 — Unified MODX 2.8 + MODX 3.0–3.2
 - Combine the tested MODX 2 and MODX 3.0–3.2 runtime lines into one transport package.
 - Add runtime service routing between MODX 2 and MODX 3 implementations.
