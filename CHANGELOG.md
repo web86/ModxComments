@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0-beta13
+- Localize the entire frontend through the `modxcomments:frontend` lexicon (EN/RU).
+- Add guest ownership via a long-lived HttpOnly browser token; only its hash is stored with new guest comments.
+- Allow new guest comments to be edited/deleted within `modxcomments.edit_time`.
+- Add root-thread pagination with configurable `modxcomments.threads_per_page`.
+- Add live published-comment count to the frontend heading and `GET web/comment/count`.
+- Add editable MODX Chunks for administrator and reply email subjects/bodies.
+- Preserve user-edited email Chunks on package upgrades.
+- Add `ModxCommentsBeforeCommentCreate`, `ModxCommentsOnCommentPublish` and `ModxCommentsOnCommentVote` events.
+- Emit publish events only when a comment actually transitions to published.
+- Preserve current-tab pending previews across frontend rerenders.
+
 ## 0.2.0-beta12
 - Fix the transport file-resolver targets for clean installs.
 - Core source now resolves into `MODX_CORE_PATH/components/`, avoiding an accidental nested `modxcomments/modxcomments/` directory.
