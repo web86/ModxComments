@@ -20,21 +20,6 @@ $modx->setLogLevel(modX::LOG_LEVEL_INFO);
 $modx->setLogTarget('ECHO');
 
 $corePath=$root.'/core/components/modxcomments/';
-$modelPath=$corePath.'src/';
-$schema=$corePath.'model/schema/modxcomments.mysql.schema.xml';
-
-$manager=$modx->getManager();
-$generator=$manager->getGenerator();
-if(!$generator->parseSchema($schema,$modelPath,array(
-    'compile'=>0,
-    'update'=>1,
-    'regenerate'=>1,
-    'namespacePrefix'=>'ModxComments\\',
-))){
-    fwrite(STDERR,"Could not parse ModxComments MODX 3 schema\n");
-    exit(1);
-}
-
 $readPackageText=function($path,$fallback) use ($modx){
     if(is_file($path) && is_readable($path)){
         $data=file_get_contents($path);
