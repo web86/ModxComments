@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<model package="modxcomments" baseClass="xPDOObject" platform="mysql" defaultEngine="InnoDB" version="1.1">
-    <object class="ModxCommentsComment" table="modxcomments_comments" extends="xPDOSimpleObject">
+<model package="ModxComments\\Model" baseClass="xPDO\\Om\\xPDOObject" platform="mysql" defaultEngine="InnoDB" version="3.0">
+    <object class="Comment" table="modxcomments_comments" extends="xPDO\\Om\\xPDOSimpleObject">
         <field key="resource_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
         <field key="context_key" dbtype="varchar" precision="100" phptype="string" null="false" default="web" />
         <field key="parent_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
@@ -42,13 +42,13 @@
             <column key="createdon" collation="A" null="false" />
         </index>
 
-        <aggregate alias="Resource" class="modResource" local="resource_id" foreign="id" cardinality="one" owner="foreign" />
-        <aggregate alias="User" class="modUser" local="user_id" foreign="id" cardinality="one" owner="foreign" />
-        <aggregate alias="Parent" class="ModxCommentsComment" local="parent_id" foreign="id" cardinality="one" owner="foreign" />
-        <composite alias="Votes" class="ModxCommentsVote" local="id" foreign="comment_id" cardinality="many" owner="local" />
+        <aggregate alias="Resource" class="MODX\\Revolution\\modResource" local="resource_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="User" class="MODX\\Revolution\\modUser" local="user_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Parent" class="Comment" local="parent_id" foreign="id" cardinality="one" owner="foreign" />
+        <composite alias="Votes" class="Vote" local="id" foreign="comment_id" cardinality="many" owner="local" />
     </object>
 
-    <object class="ModxCommentsVote" table="modxcomments_votes" extends="xPDOSimpleObject">
+    <object class="Vote" table="modxcomments_votes" extends="xPDO\\Om\\xPDOSimpleObject">
         <field key="comment_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
         <field key="voter_hash" dbtype="char" precision="64" phptype="string" null="false" default="" />
         <field key="value" dbtype="tinyint" precision="2" phptype="integer" null="false" default="1" />
@@ -63,6 +63,6 @@
             <column key="value" collation="A" null="false" />
         </index>
 
-        <aggregate alias="Comment" class="ModxCommentsComment" local="comment_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Comment" class="Comment" local="comment_id" foreign="id" cardinality="one" owner="foreign" />
     </object>
 </model>
