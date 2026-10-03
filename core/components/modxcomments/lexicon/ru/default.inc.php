@@ -34,7 +34,7 @@ $_lang['setting_modxcomments.max_length']='Максимальная длина �
 $_lang['setting_modxcomments.max_length_desc']='Максимальное количество символов в одном комментарии. По умолчанию: 5000.';
 
 $_lang['setting_modxcomments.edit_time']='Время на редактирование/удаление';
-$_lang['setting_modxcomments.edit_time_desc']='Количество секунд после публикации, в течение которых авторизованный MODX web-пользователь может изменить или удалить свой комментарий. 900 секунд = 15 минут. Гостевые комментарии в v0.2 не редактируются.';
+$_lang['setting_modxcomments.edit_time_desc']='Количество секунд после публикации, в течение которых автор может изменить или удалить свой комментарий. Авторизованный пользователь определяется по user ID, гость — по безопасному ownership cookie/hash. 900 секунд = 15 минут.';
 
 $_lang['setting_modxcomments.rate_limit_count']='Лимит комментариев';
 $_lang['setting_modxcomments.rate_limit_count_desc']='Максимальное количество комментариев с одного хешированного IP за заданное окно времени. По умолчанию: 5.';
@@ -75,3 +75,7 @@ $_lang['modxcomments.admin']='Админ';
 $_lang['modxcomments.admin_reply']='Ответ администратора';
 $_lang['modxcomments.reply_to']='Ответ на';
 $_lang['modxcomments.thread_root']='Начало ветки';
+
+
+$_lang['setting_modxcomments.threads_per_page']='Корневых веток на странице';
+$_lang['setting_modxcomments.threads_per_page_desc']='Количество корневых веток комментариев на одной странице фронтенда. Ответы выбранных веток загружаются целиком, поэтому дерево ответов не разрезается между страницами. По умолчанию: 20.';
