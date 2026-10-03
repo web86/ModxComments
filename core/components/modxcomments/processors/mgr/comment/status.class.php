@@ -24,6 +24,7 @@ class ModxCommentsMgrCommentStatusProcessor extends modProcessor
             return $this->failure('comment_not_found');
         }
 
+        $oldStatus=(string)$comment->get('status');
         $comment->set('status',$status);
         $comment->set('deletedon',null);
 
@@ -31,8 +32,12 @@ class ModxCommentsMgrCommentStatusProcessor extends modProcessor
             return $this->failure('comment_save_failed');
         }
 
-        if($status==='published'){
+        if($status==='published' && $oldStatus!=='published'){
             $comments->notifyReplyAuthor($comment);
+            $this->modx->invokeEvent('ModxCommentsOnCommentPublish',array(
+                'comment'=>$comment,
+                'service'=>$comments,
+            ));
         }
 
         return $this->success();
