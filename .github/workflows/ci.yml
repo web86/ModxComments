@@ -3,6 +3,7 @@ name: ModxComments CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   php74-lint:
