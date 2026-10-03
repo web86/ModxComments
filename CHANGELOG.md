@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1-beta1
+- Recognize sudo/Administrator manager sessions on the frontend when no web login exists.
+- Render admin-authored comments with an Admin badge and current profile fullname.
+- Use the resolved authenticated user's profile/email when creating frontend comments.
+
 ## 0.2.0-pl
 - First stable ModxComments release for MODX Revolution 2.8.x.
 - Promoted directly from the live-tested 0.2.0-beta14 codebase with no runtime feature changes.
