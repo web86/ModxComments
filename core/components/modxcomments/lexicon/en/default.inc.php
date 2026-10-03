@@ -79,3 +79,6 @@ $_lang['modxcomments.thread_root']='Thread root';
 
 $_lang['setting_modxcomments.threads_per_page']='Root threads per page';
 $_lang['setting_modxcomments.threads_per_page_desc']='Number of root comment threads shown on one frontend page. All visible replies belonging to those roots are loaded together, so a reply tree is never split between pages. Default: 20.';
+
+$_lang['setting_modxcomments.resource_signing_key']='Resource signing key';
+$_lang['setting_modxcomments.resource_signing_key_desc']='Private HMAC key used to bind the public comments API to resources where the ModxComments snippet is rendered. Generated automatically during installation. Do not expose or change it casually.';
