@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta7 — MODX 3
+- Fix manager grid response format.
+- Avoid double-encoding JSON returned by GetListProcessor::outputArray().
+- Pass pre-encoded list responses through unchanged; encode array responses normally.
+
 ## 0.3.0-beta6 — MODX 3
 - Fix manager connector response serialization for MODX 3.
 - Replace removed ProcessorResponse::toJSON() with getResponse() + json_encode().
