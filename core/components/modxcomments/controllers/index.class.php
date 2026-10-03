@@ -1,7 +1,13 @@
 <?php
-use MODX\Revolution\modExtraManagerController;
+$baseControllerClass=class_exists('MODX\\Revolution\\modExtraManagerController')
+    ? 'MODX\\Revolution\\modExtraManagerController'
+    : 'modExtraManagerController';
 
-class ModxcommentsIndexManagerController extends modExtraManagerController
+if(!class_exists('ModxCommentsManagerControllerBase',false)){
+    class_alias($baseControllerClass,'ModxCommentsManagerControllerBase');
+}
+
+class ModxcommentsIndexManagerController extends ModxCommentsManagerControllerBase
 {
     public function getLanguageTopics()
     {
