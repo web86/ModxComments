@@ -8,7 +8,7 @@
 
 ## Install
 
-1. Build or download the MODX 3 transport package `modxcomments-0.3.0-beta5`.
+1. Build or download the MODX 3 transport package `modxcomments-0.3.0-beta6`.
 2. Install it through Package Management.
 3. Clear the MODX cache.
 4. Add the cached snippet call:
