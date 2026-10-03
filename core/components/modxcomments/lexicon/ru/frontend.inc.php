@@ -65,3 +65,6 @@ $_lang['mc.error.vote_invalid']='Некорректный голос.';
 $_lang['mc.error.comment_create_cancelled']='Отправка комментария была отменена.';
 
 $_lang['mc.admin']='Админ';
+
+$_lang['mc.error.resource_token_invalid']='Форма комментариев устарела. Перезагрузите страницу и попробуйте снова.';
+$_lang['mc.error.server_error']='Произошла ошибка сервера. Попробуйте позже.';
