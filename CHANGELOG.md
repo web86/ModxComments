@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-beta2 — MODX 3
+- Fix xPDO 3 schema namespaces to use XML single backslashes, matching MODX 3/xPDO 3 conventions.
+- Regenerate the MODX 3 model under the correct `ModxComments\Model` namespace.
+- Add manager-grid diagnostics when the generated `Comment` model cannot be loaded.
+
 ## 0.3.0-beta1 — MODX 3
 - Create a dedicated MODX 3 branch from the MODX 2 beta14 feature set.
 - Bootstrap through MODX 3 vendor autoload and `MODX\Revolution\modX::getInstance()`.
