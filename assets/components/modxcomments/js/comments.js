@@ -266,13 +266,21 @@
 
     renderComments(comments) {
       const serverComments = Array.isArray(comments) ? comments.slice() : [];
-      const serverIds = new Set(serverComments.map((item) => Number(item.id)));
+      const serverIds = new Set(
+        serverComments
+          .filter((item) => !item.localPending)
+          .map((item) => Number(item.id))
+      );
 
       this.localPending = this.localPending.filter((item) => !serverIds.has(Number(item.id)));
 
       const merged = serverComments.slice();
       this.localPending.forEach((pending) => {
+        if (Number(pending.previewPage || this.page) !== Number(this.page)) return;
+
         const item = Object.assign({}, pending, { localPending: true });
+        if (merged.some((entry) => Number(entry.id) === Number(item.id))) return;
+
         const parentId = Number(item.parent || 0);
 
         if (!parentId) {
@@ -537,7 +545,10 @@
         }, 'POST');
 
         if (created.comment && created.comment.status === 'pending') {
-          this.localPending.push(Object.assign({}, created.comment, { localPending: true }));
+          this.localPending.push(Object.assign({}, created.comment, {
+            localPending: true,
+            previewPage: this.page
+          }));
         }
 
         form.reset();
