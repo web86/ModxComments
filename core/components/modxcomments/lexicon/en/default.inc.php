@@ -20,6 +20,9 @@ $_lang['modxcomments.delete']='Delete';
 $_lang['modxcomments.delete_confirm']='Soft-delete this comment? Replies will remain.';
 $_lang['modxcomments.status_updated']='Comment status updated.';
 $_lang['modxcomments.deleted']='Comment deleted.';
+$_lang['modxcomments.hard_delete']='Delete permanently';
+$_lang['modxcomments.hard_delete_confirm']='Permanently delete this comment? All replies below it and related votes will also be removed.';
+$_lang['modxcomments.hard_deleted']='Comment and its replies permanently deleted.';
 $_lang['modxcomments.actions']='Actions';
 
 $_lang['area_modxcomments']='ModxComments';
