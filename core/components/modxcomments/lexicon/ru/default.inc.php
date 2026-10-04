@@ -54,7 +54,7 @@ $_lang['setting_modxcomments.user_status_desc']='Статус нового ко�
 $_lang['setting_modxcomments.captcha_enabled']='Включить CAPTCHA';
 $_lang['setting_modxcomments.captcha_enabled_desc']='Включает защиту формы комментариев выбранным CAPTCHA-провайдером.';
 $_lang['setting_modxcomments.captcha_provider']='CAPTCHA-провайдер';
-$_lang['setting_modxcomments.captcha_provider_desc']='Провайдер CAPTCHA: turnstile, hcaptcha, recaptcha или yandex.';
+$_lang['setting_modxcomments.captcha_provider_desc']='Провайдер CAPTCHA: none, turnstile, hcaptcha, recaptcha или yandex.';
 $_lang['setting_modxcomments.captcha_guests_only']='CAPTCHA только для гостей';
 $_lang['setting_modxcomments.captcha_guests_only_desc']='Если включено, CAPTCHA требуется только неавторизованным посетителям.';
 
