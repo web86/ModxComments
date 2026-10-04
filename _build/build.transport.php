@@ -55,7 +55,8 @@ $builder->registerNamespace(
     'modxcomments',
     false,
     true,
-    '{core_path}components/modxcomments/'
+    '{core_path}components/modxcomments/',
+    '{assets_path}components/modxcomments/'
 );
 
 $category=$modx->newObject('modCategory');
