@@ -106,6 +106,7 @@ modxcomments.notify_replies = 0
 
 The comment form supports four providers without changing the `[[ModxComments]]` call:
 
+- `none` — no CAPTCHA
 - `turnstile` — Cloudflare Turnstile
 - `hcaptcha` — hCaptcha
 - `recaptcha` — Google reCAPTCHA v2 or v3
