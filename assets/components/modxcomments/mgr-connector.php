@@ -7,7 +7,11 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store, private, max-age=0');
 
-$isModx3=class_exists('MODX\\Revolution\\modX');
+$versionData=@include MODX_CORE_PATH.'docs/version.inc.php';
+$fullVersion=is_array($versionData) && !empty($versionData['full_version'])
+    ? (string)$versionData['full_version']
+    : (is_array($versionData) && !empty($versionData['version']) ? (string)$versionData['version'] : '2.0.0');
+$isModx3=version_compare($fullVersion,'3.0.0','>=');
 $corePath=$modx->getOption(
     'modxcomments.core_path',
     null,
@@ -155,10 +159,15 @@ try{
 
         $response=$modx->runProcessor($route['modx3'],$properties);
     }else{
+        $processorPath=$corePath.'processors/';
+        if(!is_dir($processorPath)){
+            throw new RuntimeException('MODX 2 processor path is missing: '.$processorPath);
+        }
+
         $response=$modx->runProcessor(
             $route['modx2'],
             $properties,
-            array('processors_path'=>$corePath.'processors/')
+            array('processors_path'=>$processorPath)
         );
     }
 
