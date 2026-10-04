@@ -109,11 +109,13 @@ ModxCommentsOnCommentPublish
 ModxCommentsOnCommentVote
 ```
 
-## Development branches
+## Branches
 
-- `main` — MODX 2 reference line.
-- `modx3` — MODX 3.0–3.2 reference line.
-- `unified` — combined package and the intended forward path after validation.
+- `unified` — primary development and release branch for the universal MODX 2.8 + MODX 3 package.
+- `main` — legacy MODX 2 reference line.
+- `modx3` — legacy MODX 3.0–3.2 reference line.
+
+Ready-to-install transport ZIP archives can be placed in `distr/`.
 
 
 ### MODX 3.3 note
