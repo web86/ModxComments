@@ -50,7 +50,7 @@ $readPackageText=function($path,$fallback) use ($modx){
 };
 
 $builder=new modPackageBuilder($modx);
-$builder->createPackage('modxcomments','1.0.0','rc6');
+$builder->createPackage('modxcomments','1.0.1','pl');
 $builder->registerNamespace(
     'modxcomments',
     false,
@@ -135,11 +135,11 @@ $builder->setPackageAttributes(array(
     ),
     'readme'=>$readPackageText(
         $root.'/docs/INSTALL.md',
-        "ModxComments 1.0.0-rc6\nSupports MODX Revolution 2.8.x and 3.x.\n"
+        "ModxComments 1.0.1-pl\nSupports MODX Revolution 2.8.x and 3.x.\n"
     ),
     'changelog'=>$readPackageText(
         $root.'/CHANGELOG.md',
-        "ModxComments 1.0.0-rc6\nUnified MODX 2.8 + MODX 3 package.\n"
+        "ModxComments 1.0.1-pl\nUnified MODX 2.8 + MODX 3 package.\n"
     ),
     'requires'=>array(
         'php'=>'>=7.4.0',
@@ -149,4 +149,4 @@ $builder->setPackageAttributes(array(
 
 $builder->pack();
 
-echo "Built universal ModxComments 1.0.0-rc6 transport package for MODX 2.8 + MODX 3.0-3.2.\n";
+echo "Built universal ModxComments 1.0.1-pl transport package for MODX 2.8 + MODX 3.0-3.2.\n";
