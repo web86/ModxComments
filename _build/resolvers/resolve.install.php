@@ -1,8 +1,12 @@
 <?php
-if(!isset($object)) return true;
+if(!isset($object) || !is_object($object) || !isset($object->xpdo)) return false;
 
 $modx=$object->xpdo;
-$isModx3=class_exists('MODX\\Revolution\\modX');
+$versionData=@include MODX_CORE_PATH.'docs/version.inc.php';
+$fullVersion=is_array($versionData) && !empty($versionData['full_version'])
+    ? (string)$versionData['full_version']
+    : (is_array($versionData) && !empty($versionData['version']) ? (string)$versionData['version'] : '2.0.0');
+$isModx3=version_compare($fullVersion,'3.0.0','>=');
 
 $categoryClass=$isModx3 ? 'MODX\\Revolution\\modCategory' : 'modCategory';
 $menuClass=$isModx3 ? 'MODX\\Revolution\\modMenu' : 'modMenu';
@@ -12,8 +16,6 @@ $eventClass=$isModx3 ? 'MODX\\Revolution\\modEvent' : 'modEvent';
 $transportClass=$isModx3 ? 'xPDO\\Transport\\xPDOTransport' : 'xPDOTransport';
 $xpdoClass=$isModx3 ? 'xPDO\\xPDO' : 'xPDO';
 $modxClass=$isModx3 ? 'MODX\\Revolution\\modX' : 'modX';
-
-if(!($object instanceof $categoryClass)) return true;
 
 $packageActionKey=constant($transportClass.'::PACKAGE_ACTION');
 $actionInstall=constant($transportClass.'::ACTION_INSTALL');
@@ -335,5 +337,12 @@ $cacheManager->refresh(array(
     'menu'=>array(),
     'resource'=>array(),
 ));
+
+$logInfo=constant($modxClass.'::LOG_LEVEL_INFO');
+$modx->log(
+    $logInfo,
+    '[ModxComments] Install resolver completed for MODX '.$fullVersion
+    .'; settings, signing key and manager menu verified.'
+);
 
 return true;
