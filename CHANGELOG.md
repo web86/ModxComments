@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-rc4 — MODX 2 manager routing fix
+- Detect MODX 2/3 from the installed version in the manager connector instead of autoloaded class availability.
+- Apply the same deterministic version routing to the namespace bootstrap.
+- Add a clear MODX 2 processor-path diagnostic when the manager connector cannot dispatch a processor.
+- Use a new transport signature so MODX 2 cannot reuse an unpacked rc3 package.
+
 ## 1.0.0-rc3 — Legacy MODX 2 upgrade repair
 - Detect MODX 2/3 from `core/docs/version.inc.php` instead of autoloaded class availability.
 - Remove the install resolver's silent class-mismatch exit so legacy MODX 2 installs cannot skip settings/menu creation.
