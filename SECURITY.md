@@ -2,7 +2,7 @@
 
 ## Supported package line
 
-The current unified release candidate supports MODX Revolution 2.8.x and MODX 3.0–3.2.
+The current stable unified release supports MODX Revolution 2.8.x and MODX 3.0–3.2.
 
 ## Reporting a vulnerability
 
@@ -28,7 +28,7 @@ ModxComments uses:
 - plaintext-first rendering with restricted HTTP(S) link conversion;
 - HttpOnly, SameSite=Lax guest identity cookies;
 - hashed guest ownership/voter identifiers in the database;
-- optional Cloudflare Turnstile;
+- optional pluggable CAPTCHA protection: Cloudflare Turnstile, hCaptcha, Google reCAPTCHA v2/v3, or Yandex SmartCaptcha;
 - IP-based comment creation rate limiting;
 - soft deletion;
 - generic public server errors with detailed errors kept in the server log;
@@ -39,7 +39,7 @@ ModxComments uses:
 - Serve the site over HTTPS.
 - Keep MODX and PHP patched.
 - For open public sites, consider setting guest comments to `pending`.
-- Enable Turnstile when automated abuse is expected.
+- Enable a supported CAPTCHA provider when automated abuse is expected.
 - Keep `modxcomments.resource_signing_key` private.
 - Restrict manager accounts and use strong authentication.
 - Review MODX mail and reverse-proxy configuration before production use.
