@@ -16,7 +16,7 @@ ModxComments is a cache-safe, AJAX-first threaded comments Extra with a shared f
 - safe plaintext + HTTP(S) links;
 - emoji toolbar;
 - reply quotes;
-- Cloudflare Turnstile abstraction;
+- pluggable CAPTCHA providers: Cloudflare Turnstile, hCaptcha, Google reCAPTCHA v2/v3 and Yandex SmartCaptcha;
 - admin/reply email notifications via editable Chunks;
 - root-thread pagination and comment count API;
 - EN/RU frontend lexicon;
