@@ -188,6 +188,12 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
                     iconCls:'icon icon-trash-o',
                     handler:function(){this.removeComment(record.id);},
                     scope:this
+                },
+                {
+                    text:_('modxcomments.hard_delete'),
+                    iconCls:'icon icon-times-circle',
+                    handler:function(){this.hardRemoveComment(record.id);},
+                    scope:this
                 }
             ]
         });
@@ -237,6 +243,27 @@ Ext.extend(ModxComments.grid.Comments,MODx.grid.Grid,{
                     fn:function(){
                         this.refresh();
                         MODx.msg.status({title:_('success'),message:_('modxcomments.deleted')});
+                    },
+                    scope:this
+                }
+            }
+        });
+    },
+
+    hardRemoveComment:function(id){
+        MODx.msg.confirm({
+            title:_('modxcomments.hard_delete'),
+            text:_('modxcomments.hard_delete_confirm'),
+            url:ModxComments.config.connectorUrl,
+            params:{
+                action:'ModxComments\\Processors\\Mgr\\Comment\\HardRemove',
+                id:id
+            },
+            listeners:{
+                success:{
+                    fn:function(){
+                        this.refresh();
+                        MODx.msg.status({title:_('success'),message:_('modxcomments.hard_deleted')});
                     },
                     scope:this
                 }
