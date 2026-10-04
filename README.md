@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-rc6
+# ModxComments 1.0.1-pl
 
 One transport package for **MODX Revolution 2.8.x and MODX 3.0–3.2.0–3.2**.
 
@@ -59,7 +59,7 @@ php _build/build.transport.php
 The resulting package is:
 
 ```text
-modxcomments-1.0.0-rc6
+modxcomments-1.0.1-pl
 ```
 
 Install that same transport ZIP on either MODX 2.8 or MODX 3.0–3.2.
@@ -120,7 +120,7 @@ Ready-to-install transport ZIP archives can be placed in `distr/`.
 
 ### MODX 3.3 note
 
-This release candidate targets MODX 3.0–3.2. MODX currently loads deprecated global class aliases by default on that line, while their automatic loading is planned to stop in 3.3. The runtime itself already uses the MODX 3 namespaced model/processors; the universal transport vehicle should be revalidated before claiming MODX 3.3 support.
+This stable release targets MODX 3.0–3.2. MODX currently loads deprecated global class aliases by default on that line, while their automatic loading is planned to stop in 3.3. The runtime itself already uses the MODX 3 namespaced model/processors; the universal transport vehicle should be revalidated before claiming MODX 3.3 support.
 
 
 ## Security model
