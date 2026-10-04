@@ -11,7 +11,7 @@ modxcomments-<version>.transport.zip
 Example:
 
 ```text
-modxcomments-1.0.0-rc6.transport.zip
+modxcomments-1.0.1-pl.transport.zip
 ```
 
 The package source of truth is the `unified` branch.
