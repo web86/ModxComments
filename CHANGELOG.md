@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-rc2 — Upgrade reliability
+- Use a new transport signature so MODX 2 cannot reuse an unpacked `1.0.0-rc1` package after the ZIP has changed.
+- Register both namespace core and assets paths in the transport.
+- Fail installation when required namespace, settings, manager menu, or events cannot be persisted.
+- Verify the generated resource-signing key and manager menu after installation.
+- Repair a missing resource-signing key from the snippet and fail closed if it cannot be persisted.
+- Initialize frontend localization before protected comment-list requests.
+
 ## 1.0.0-rc1 — Security hardening
 - Restrict the manager CMP and moderation processors to sudo/Administrator users.
 - Validate MODX manager `HTTP_MODAUTH` in the custom manager connector.
