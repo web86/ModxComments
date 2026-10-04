@@ -1,5 +1,11 @@
 <?php
-$baseControllerClass=class_exists('MODX\\Revolution\\modExtraManagerController')
+$versionData=@include MODX_CORE_PATH.'docs/version.inc.php';
+$fullVersion=is_array($versionData) && !empty($versionData['full_version'])
+    ? (string)$versionData['full_version']
+    : (is_array($versionData) && !empty($versionData['version']) ? (string)$versionData['version'] : '2.0.0');
+$isModx3=version_compare($fullVersion,'3.0.0','>=');
+
+$baseControllerClass=$isModx3
     ? 'MODX\\Revolution\\modExtraManagerController'
     : 'modExtraManagerController';
 
