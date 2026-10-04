@@ -78,6 +78,15 @@ if(!$saveRequired($namespace,'namespace modxcomments')){
     return false;
 }
 
+$legacyTurnstileEnabled=$modx->getObject($settingClass,'modxcomments.turnstile_enabled');
+$legacyTurnstileGuestsOnly=$modx->getObject($settingClass,'modxcomments.turnstile_guests_only');
+$captchaEnabledDefault=$legacyTurnstileEnabled
+    ? (string)$legacyTurnstileEnabled->get('value')
+    : '0';
+$captchaGuestsOnlyDefault=$legacyTurnstileGuestsOnly
+    ? (string)$legacyTurnstileGuestsOnly->get('value')
+    : '1';
+
 $settings=array(
     'allow_guests'=>array('1','combo-boolean'),
     'max_depth'=>array('5','numberfield'),
@@ -87,10 +96,19 @@ $settings=array(
     'rate_limit_window'=>array('60','numberfield'),
     'guest_status'=>array('published','textfield'),
     'user_status'=>array('published','textfield'),
-    'turnstile_enabled'=>array('0','combo-boolean'),
+    'captcha_enabled'=>array($captchaEnabledDefault,'combo-boolean'),
+    'captcha_provider'=>array('turnstile','textfield'),
+    'captcha_guests_only'=>array($captchaGuestsOnlyDefault,'combo-boolean'),
     'turnstile_site_key'=>array('','textfield'),
     'turnstile_secret_key'=>array('','text-password'),
-    'turnstile_guests_only'=>array('1','combo-boolean'),
+    'hcaptcha_site_key'=>array('','textfield'),
+    'hcaptcha_secret_key'=>array('','text-password'),
+    'recaptcha_version'=>array('v2','textfield'),
+    'recaptcha_site_key'=>array('','textfield'),
+    'recaptcha_secret_key'=>array('','text-password'),
+    'recaptcha_min_score'=>array('0.5','numberfield'),
+    'yandex_client_key'=>array('','textfield'),
+    'yandex_server_key'=>array('','text-password'),
     'notify_admin'=>array('0','combo-boolean'),
     'notify_admin_email'=>array('','textfield'),
     'notify_replies'=>array('0','combo-boolean'),
