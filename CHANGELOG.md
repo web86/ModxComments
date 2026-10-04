@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-rc5 — Permanent admin deletion
+- Add a manager-only permanent delete action for comments.
+- Permanently deleting a comment also removes all descendant replies and related votes to avoid orphaned records.
+- Keep the existing soft-delete action unchanged for normal moderation.
+- Add MODX 2 and MODX 3 hard-delete processors and localized confirmation messages.
+- Use a new transport signature so older MODX installations cannot reuse an unpacked rc4 package.
+
 ## 1.0.0-rc4 — MODX 2 manager routing fix
 - Detect MODX 2/3 from the installed version in the manager connector instead of autoloaded class availability.
 - Apply the same deterministic version routing to the namespace bootstrap.
