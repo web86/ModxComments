@@ -22,6 +22,29 @@ $action=isset($options[$packageActionKey])?$options[$packageActionKey]:$actionIn
 $logError=constant($modxClass.'::LOG_LEVEL_ERROR');
 $tablePrefixOption=constant($xpdoClass.'::OPT_TABLE_PREFIX');
 
+$logInstallError=function($message) use ($modx,$logError){
+    $modx->log($logError,'[ModxComments] '.$message);
+};
+
+$saveRequired=function($record,$label) use ($logInstallError){
+    if(!$record){
+        $logInstallError('Could not instantiate required install object: '.$label);
+        return false;
+    }
+
+    try{
+        if($record->save()){
+            return true;
+        }
+    }catch(Throwable $e){
+        $logInstallError('Could not save '.$label.': '.$e->getMessage());
+        return false;
+    }
+
+    $logInstallError('Could not save required install object: '.$label);
+    return false;
+};
+
 if($action===$actionUninstall){
     $menu=$modx->getObject($menuClass,'modxcomments');
     if($menu) $menu->remove();
@@ -43,9 +66,15 @@ if(!$namespace){
     $namespace=$modx->newObject($namespaceClass);
     $namespace->set('name','modxcomments');
 }
+if(!$namespace){
+    $logInstallError('Could not instantiate namespace object.');
+    return false;
+}
 $namespace->set('path','{core_path}components/modxcomments/');
 $namespace->set('assets_path','{assets_path}components/modxcomments/');
-$namespace->save();
+if(!$saveRequired($namespace,'namespace modxcomments')){
+    return false;
+}
 
 $settings=array(
     'allow_guests'=>array('1','combo-boolean'),
@@ -73,6 +102,10 @@ foreach($settings as $key=>$spec){
 
     if(!$setting){
         $setting=$modx->newObject($settingClass);
+        if(!$setting){
+            $logInstallError('Could not instantiate system setting '.$fullKey.'.');
+            return false;
+        }
         $setting->set('key',$fullKey);
         $setting->set('value',$spec[0]);
     }
@@ -89,12 +122,24 @@ foreach($settings as $key=>$spec){
     $setting->set('xtype',$spec[1]);
     $setting->set('namespace','modxcomments');
     $setting->set('area','modxcomments');
-    $setting->save();
+    if(!$saveRequired($setting,'system setting '.$fullKey)){
+        return false;
+    }
+}
+
+$signingSetting=$modx->getObject($settingClass,'modxcomments.resource_signing_key');
+if(!$signingSetting || trim((string)$signingSetting->get('value'))===''){
+    $logInstallError('Resource signing key was not persisted.');
+    return false;
 }
 
 $menu=$modx->getObject($menuClass,'modxcomments');
 if(!$menu){
     $menu=$modx->newObject($menuClass);
+    if(!$menu){
+        $logInstallError('Could not instantiate manager menu object.');
+        return false;
+    }
     $menu->set('text','modxcomments');
 }
 $menu->fromArray(array(
@@ -105,8 +150,20 @@ $menu->fromArray(array(
     'namespace'=>'modxcomments',
     'params'=>'',
     'handler'=>'',
+    'permissions'=>'',
 ),'',true,true);
-$menu->save();
+if(!$saveRequired($menu,'manager menu modxcomments')){
+    return false;
+}
+
+$installedMenu=$modx->getObject($menuClass,'modxcomments');
+if(!$installedMenu
+    || (string)$installedMenu->get('namespace')!=='modxcomments'
+    || (string)$installedMenu->get('action')!=='index'
+){
+    $logInstallError('Manager menu verification failed after save.');
+    return false;
+}
 
 $prefix=preg_replace(
     '/[^a-zA-Z0-9_]/',
@@ -260,11 +317,18 @@ foreach(array(
             true,
             true
         );
-        $event->save();
+        if(!$saveRequired($event,'event '.$eventName)){
+            return false;
+        }
     }
 }
 
-$modx->getCacheManager()->refresh(array(
+$cacheManager=$modx->getCacheManager();
+if(!$cacheManager){
+    $logInstallError('Could not load cache manager after installation.');
+    return false;
+}
+$cacheManager->refresh(array(
     'system_settings'=>array(),
     'context_settings'=>array(),
     'lexicon_topics'=>array(),
