@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-rc3 — installation
+# ModxComments 1.0.0-rc4 — installation
 
 ## Compatibility
 
@@ -20,7 +20,7 @@ php _build/build.transport.php
 Output:
 
 ```text
-modxcomments-1.0.0-rc3
+modxcomments-1.0.0-rc4
 ```
 
 Use the **same ZIP** on MODX 2 or MODX 3.0–3.2.
@@ -41,7 +41,7 @@ Existing `modxcomments_comments` and `modxcomments_votes` data are preserved dur
 
 Do not replace a transport ZIP with another build that has the same MODX package signature. MODX 2 caches the unpacked transport under `core/packages/<signature>/` and may continue installing the previously unpacked build even when the ZIP contents changed.
 
-Every distributable build must use a new release/signature. This release is `modxcomments-1.0.0-rc3` specifically so installations that previously tested `1.0.0-rc1` receive the new files and resolver.
+Every distributable build must use a new release/signature. This release is `modxcomments-1.0.0-rc4` specifically so installations that previously tested `1.0.0-rc1` receive the new files and resolver.
 
 ## Runtime compatibility
 
