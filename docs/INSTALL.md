@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-rc6 — installation
+# ModxComments 1.0.1-pl — installation
 
 ## Compatibility
 
@@ -20,7 +20,7 @@ php _build/build.transport.php
 Output:
 
 ```text
-modxcomments-1.0.0-rc6
+modxcomments-1.0.1-pl
 ```
 
 Use the **same ZIP** on MODX 2 or MODX 3.0–3.2.
@@ -41,7 +41,7 @@ Existing `modxcomments_comments` and `modxcomments_votes` data are preserved dur
 
 Do not replace a transport ZIP with another build that has the same MODX package signature. MODX 2 caches the unpacked transport under `core/packages/<signature>/` and may continue installing the previously unpacked build even when the ZIP contents changed.
 
-Every distributable build must use a new release/signature. This release is `modxcomments-1.0.0-rc6` specifically so installations that previously tested `1.0.0-rc1` receive the new files and resolver.
+Every distributable build must use a new release/signature. The current stable release is `modxcomments-1.0.1-pl`.
 
 ## Runtime compatibility
 
@@ -140,6 +140,6 @@ Component registration, settings and menu are removed. Comment tables/data are i
 
 `modxcomments.resource_signing_key` is generated automatically and is used only to sign the resource/context rendered by the snippet. Do not publish or routinely rotate it; changing it invalidates cached comment widgets until those pages are regenerated.
 
-The manager comments CMP is intentionally limited to sudo users and members of the Administrator group in this release candidate.
+The manager comments CMP is intentionally limited to sudo users and members of the Administrator group in this release.
 
 After upgrading from an earlier beta, clear the MODX resource cache so pages contain the new signed resource token.
