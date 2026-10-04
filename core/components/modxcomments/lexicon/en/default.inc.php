@@ -51,6 +51,32 @@ $_lang['setting_modxcomments.guest_status_desc']='Status assigned to newly submi
 $_lang['setting_modxcomments.user_status']='Default authenticated-user comment status';
 $_lang['setting_modxcomments.user_status_desc']='Status assigned to new comments submitted by authenticated MODX web users. Use "published" or "pending".';
 
+$_lang['setting_modxcomments.captcha_enabled']='Enable CAPTCHA';
+$_lang['setting_modxcomments.captcha_enabled_desc']='Protect the comment form with the selected CAPTCHA provider.';
+$_lang['setting_modxcomments.captcha_provider']='CAPTCHA provider';
+$_lang['setting_modxcomments.captcha_provider_desc']='CAPTCHA provider: turnstile, hcaptcha, recaptcha, or yandex.';
+$_lang['setting_modxcomments.captcha_guests_only']='CAPTCHA for guests only';
+$_lang['setting_modxcomments.captcha_guests_only_desc']='If enabled, CAPTCHA is required only for unauthenticated visitors.';
+
+$_lang['setting_modxcomments.hcaptcha_site_key']='hCaptcha site key';
+$_lang['setting_modxcomments.hcaptcha_site_key_desc']='Public hCaptcha site key.';
+$_lang['setting_modxcomments.hcaptcha_secret_key']='hCaptcha secret key';
+$_lang['setting_modxcomments.hcaptcha_secret_key_desc']='Private hCaptcha secret used for server-side verification.';
+
+$_lang['setting_modxcomments.recaptcha_version']='Google reCAPTCHA version';
+$_lang['setting_modxcomments.recaptcha_version_desc']='Use v2 for the visible checkbox widget or v3 for invisible score-based verification.';
+$_lang['setting_modxcomments.recaptcha_site_key']='Google reCAPTCHA site key';
+$_lang['setting_modxcomments.recaptcha_site_key_desc']='Public Google reCAPTCHA site key.';
+$_lang['setting_modxcomments.recaptcha_secret_key']='Google reCAPTCHA secret key';
+$_lang['setting_modxcomments.recaptcha_secret_key_desc']='Private Google reCAPTCHA secret used for server-side verification.';
+$_lang['setting_modxcomments.recaptcha_min_score']='reCAPTCHA v3 minimum score';
+$_lang['setting_modxcomments.recaptcha_min_score_desc']='Minimum accepted reCAPTCHA v3 score from 0 to 1. Default: 0.5.';
+
+$_lang['setting_modxcomments.yandex_client_key']='Yandex SmartCaptcha client key';
+$_lang['setting_modxcomments.yandex_client_key_desc']='Client-side key used to render Yandex SmartCaptcha.';
+$_lang['setting_modxcomments.yandex_server_key']='Yandex SmartCaptcha server key';
+$_lang['setting_modxcomments.yandex_server_key_desc']='Server-side key used to verify Yandex SmartCaptcha tokens.';
+
 $_lang['setting_modxcomments.turnstile_enabled']='Enable Cloudflare Turnstile';
 $_lang['setting_modxcomments.turnstile_enabled_desc']='Enable Cloudflare Turnstile verification for comment submission. Site key and secret key must also be configured.';
 
