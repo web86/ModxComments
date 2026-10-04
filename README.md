@@ -1,4 +1,4 @@
-# ModxComments 1.0.0-rc3
+# ModxComments 1.0.0-rc4
 
 One transport package for **MODX Revolution 2.8.x and MODX 3.0–3.2.0–3.2**.
 
@@ -59,7 +59,7 @@ php _build/build.transport.php
 The resulting package is:
 
 ```text
-modxcomments-1.0.0-rc3
+modxcomments-1.0.0-rc4
 ```
 
 Install that same transport ZIP on either MODX 2.8 or MODX 3.0–3.2.
