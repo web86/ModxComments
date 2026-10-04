@@ -95,11 +95,29 @@ modxcomments.rate_limit_window = 60
 modxcomments.guest_status = published
 modxcomments.user_status = published
 modxcomments.threads_per_page = 20
-modxcomments.turnstile_enabled = 0
-modxcomments.turnstile_guests_only = 1
+modxcomments.captcha_enabled = 0
+modxcomments.captcha_provider = turnstile
+modxcomments.captcha_guests_only = 1
 modxcomments.notify_admin = 0
 modxcomments.notify_replies = 0
 ```
+
+## CAPTCHA providers
+
+The comment form supports four providers without changing the `[[ModxComments]]` call:
+
+- `turnstile` — Cloudflare Turnstile
+- `hcaptcha` — hCaptcha
+- `recaptcha` — Google reCAPTCHA v2 or v3
+- `yandex` — Yandex SmartCaptcha
+
+Enable CAPTCHA with `modxcomments.captcha_enabled=1`, choose the provider in `modxcomments.captcha_provider`, and configure that provider's keys.
+
+For Google reCAPTCHA, set `modxcomments.recaptcha_version` to `v2` or `v3`. With v3, `modxcomments.recaptcha_min_score` controls the minimum accepted score and defaults to `0.5`.
+
+`modxcomments.captcha_guests_only=1` requires CAPTCHA only for unauthenticated visitors.
+
+Existing installations that used the old Turnstile enable/guests-only switches are migrated automatically to the generic CAPTCHA settings during upgrade.
 
 ## Email templates
 
