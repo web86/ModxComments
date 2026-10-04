@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0-rc6 — Pluggable CAPTCHA providers
+- Add a generic CAPTCHA provider layer shared by MODX 2 and MODX 3.
+- Support Cloudflare Turnstile, hCaptcha, Google reCAPTCHA v2/v3, Yandex SmartCaptcha, and an explicit none provider.
+- Add generic CAPTCHA enable/provider/guests-only settings and provider-specific credentials.
+- Verify every CAPTCHA token server-side over TLS using the provider's official verification endpoint.
+- Validate Google reCAPTCHA v3 action and configurable minimum score; request v3 tokens at submit time.
+- Migrate existing Turnstile enable/guests-only settings to the new generic settings and remove the obsolete duplicate toggles.
+- Keep the `[[ModxComments]]` call unchanged.
+- Use a new transport signature so older MODX installations cannot reuse an unpacked rc5 package.
+
 ## 1.0.0-rc5 — Permanent admin deletion
 - Add a manager-only permanent delete action for comments.
 - Permanently deleting a comment also removes all descendant replies and related votes to avoid orphaned records.
