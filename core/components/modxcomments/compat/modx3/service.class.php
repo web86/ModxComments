@@ -765,7 +765,7 @@ class ModxComments
     protected function getCaptchaProviderName()
     {
         $provider = strtolower(trim((string) $this->config['captchaProvider']));
-        $allowed = array('turnstile', 'hcaptcha', 'recaptcha', 'yandex');
+        $allowed = array('none', 'turnstile', 'hcaptcha', 'recaptcha', 'yandex');
 
         return in_array($provider, $allowed, true) ? $provider : 'turnstile';
     }
