@@ -18,7 +18,8 @@
       this.editingId = 0;
       this.deletingId = 0;
       this.captchaToken = '';
-      this.turnstileWidget = null;
+      this.captchaWidget = null;
+      this.captchaProvider = '';
       this.relativeFormatter = null;
       this.page = 1;
       this.total = 0;
@@ -531,7 +532,23 @@
       const data = new FormData(form);
       const submit = form.querySelector('[type="submit"]');
 
-      if (this.settings.captcha && this.settings.captcha.enabled && !this.captchaToken) {
+      const captcha = this.settings.captcha || {};
+
+      if (
+        captcha.enabled
+        && captcha.provider === 'recaptcha'
+        && captcha.version === 'v3'
+      ) {
+        try {
+          this.captchaToken = await this.getRecaptchaV3Token(captcha);
+        } catch (error) {
+          this.captchaToken = '';
+          this.showStatus(this.t('captcha_required', {}, 'Please complete the CAPTCHA.'), true);
+          return;
+        }
+      }
+
+      if (captcha.enabled && !this.captchaToken) {
         this.showStatus(this.t('captcha_required', {}, 'Please complete the CAPTCHA.'), true);
         return;
       }
@@ -724,23 +741,116 @@
       const captcha = this.settings.captcha || {};
       if (!captcha.enabled || !captcha.siteKey) return;
 
-      await ModxComments.loadTurnstile();
-      if (!window.turnstile) return;
-
       const target = this.root.querySelector('[data-mc-captcha]');
-      this.turnstileWidget = window.turnstile.render(target, {
-        sitekey: captcha.siteKey,
-        callback: (token) => { this.captchaToken = token; },
-        'expired-callback': () => { this.captchaToken = ''; },
-        'error-callback': () => { this.captchaToken = ''; }
+      if (!target) return;
+
+      this.captchaProvider = captcha.provider || 'turnstile';
+
+      if (this.captchaProvider === 'turnstile') {
+        await ModxComments.loadScript(
+          'turnstile',
+          'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',
+          () => Boolean(window.turnstile)
+        );
+        if (!window.turnstile) return;
+
+        this.captchaWidget = window.turnstile.render(target, {
+          sitekey: captcha.siteKey,
+          callback: (token) => { this.captchaToken = token; },
+          'expired-callback': () => { this.captchaToken = ''; },
+          'error-callback': () => { this.captchaToken = ''; }
+        });
+        return;
+      }
+
+      if (this.captchaProvider === 'hcaptcha') {
+        await ModxComments.loadScript(
+          'hcaptcha',
+          'https://js.hcaptcha.com/1/api.js?render=explicit',
+          () => Boolean(window.hcaptcha)
+        );
+        if (!window.hcaptcha) return;
+
+        this.captchaWidget = window.hcaptcha.render(target, {
+          sitekey: captcha.siteKey,
+          callback: (token) => { this.captchaToken = token; },
+          'expired-callback': () => { this.captchaToken = ''; },
+          'error-callback': () => { this.captchaToken = ''; }
+        });
+        return;
+      }
+
+      if (this.captchaProvider === 'recaptcha') {
+        const version = captcha.version === 'v3' ? 'v3' : 'v2';
+        const src = version === 'v3'
+          ? 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(captcha.siteKey)
+          : 'https://www.google.com/recaptcha/api.js?render=explicit';
+
+        await ModxComments.loadScript(
+          'recaptcha-' + version,
+          src,
+          () => Boolean(window.grecaptcha)
+        );
+        if (!window.grecaptcha || version === 'v3') return;
+
+        this.captchaWidget = window.grecaptcha.render(target, {
+          sitekey: captcha.siteKey,
+          callback: (token) => { this.captchaToken = token; },
+          'expired-callback': () => { this.captchaToken = ''; },
+          'error-callback': () => { this.captchaToken = ''; }
+        });
+        return;
+      }
+
+      if (this.captchaProvider === 'yandex') {
+        await ModxComments.loadScript(
+          'yandex',
+          'https://smartcaptcha.cloud.yandex.ru/captcha.js',
+          () => Boolean(window.smartCaptcha)
+        );
+        if (!window.smartCaptcha) return;
+
+        this.captchaWidget = window.smartCaptcha.render(target, {
+          sitekey: captcha.siteKey,
+          hl: (this.settings.locale || document.documentElement.lang || 'en').slice(0, 2),
+          callback: (token) => { this.captchaToken = token; }
+        });
+      }
+    }
+
+    getRecaptchaV3Token(captcha) {
+      return new Promise((resolve, reject) => {
+        if (!window.grecaptcha) {
+          reject(new Error('captcha_unavailable'));
+          return;
+        }
+
+        window.grecaptcha.ready(() => {
+          window.grecaptcha.execute(
+            captcha.siteKey,
+            { action: captcha.action || 'comment' }
+          ).then(resolve).catch(reject);
+        });
       });
     }
 
     resetCaptcha() {
       this.captchaToken = '';
 
-      if (window.turnstile && this.turnstileWidget !== null) {
-        window.turnstile.reset(this.turnstileWidget);
+      if (this.captchaWidget === null) return;
+
+      if (this.captchaProvider === 'turnstile' && window.turnstile) {
+        window.turnstile.reset(this.captchaWidget);
+      } else if (this.captchaProvider === 'hcaptcha' && window.hcaptcha) {
+        window.hcaptcha.reset(this.captchaWidget);
+      } else if (
+        this.captchaProvider === 'recaptcha'
+        && window.grecaptcha
+        && (this.settings.captcha || {}).version !== 'v3'
+      ) {
+        window.grecaptcha.reset(this.captchaWidget);
+      } else if (this.captchaProvider === 'yandex' && window.smartCaptcha) {
+        window.smartCaptcha.reset(this.captchaWidget);
       }
     }
 
@@ -813,25 +923,33 @@
       })[ch]);
     }
 
-    static loadTurnstile() {
-      if (window.turnstile) return Promise.resolve();
-      if (ModxComments.turnstilePromise) return ModxComments.turnstilePromise;
+    static loadScript(key, src, ready) {
+      if (typeof ready === 'function' && ready()) return Promise.resolve();
+      if (ModxComments.scriptPromises[key]) return ModxComments.scriptPromises[key];
 
-      ModxComments.turnstilePromise = new Promise((resolve, reject) => {
+      ModxComments.scriptPromises[key] = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[data-modx-comments-captcha="' + key + '"]');
+        if (existing) {
+          existing.addEventListener('load', resolve, { once: true });
+          existing.addEventListener('error', reject, { once: true });
+          return;
+        }
+
         const script = document.createElement('script');
-        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.src = src;
         script.async = true;
         script.defer = true;
+        script.dataset.modxCommentsCaptcha = key;
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
       });
 
-      return ModxComments.turnstilePromise;
+      return ModxComments.scriptPromises[key];
     }
   }
 
-  ModxComments.turnstilePromise = null;
+  ModxComments.scriptPromises = {};
 
   function boot() {
     document.querySelectorAll('[data-modx-comments]').forEach((root) => {
