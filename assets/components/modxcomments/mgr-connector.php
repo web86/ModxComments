@@ -103,6 +103,18 @@ $routes=array(
         'modx3'=>'ModxComments\\Processors\\Mgr\\Comment\\Remove',
         'file'=>$corePath.'src/Processors/Mgr/Comment/Remove.php',
     ),
+    'mgr/comment/hardremove'=>array(
+        'methods'=>array('POST'),
+        'modx2'=>'mgr/comment/hardremove',
+        'modx3'=>'ModxComments\\Processors\\Mgr\\Comment\\HardRemove',
+        'file'=>$corePath.'src/Processors/Mgr/Comment/HardRemove.php',
+    ),
+    'ModxComments\\Processors\\Mgr\\Comment\\HardRemove'=>array(
+        'methods'=>array('POST'),
+        'modx2'=>'mgr/comment/hardremove',
+        'modx3'=>'ModxComments\\Processors\\Mgr\\Comment\\HardRemove',
+        'file'=>$corePath.'src/Processors/Mgr/Comment/HardRemove.php',
+    ),
 );
 
 if(!isset($routes[$action])){
