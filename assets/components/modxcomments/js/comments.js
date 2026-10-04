@@ -32,10 +32,7 @@
       this.setLoading(true);
 
       try {
-        const [init, list] = await Promise.all([
-          this.request('web/init'),
-          this.request('web/comment/getlist', { resource: this.resource, page: 1 })
-        ]);
+        const init = await this.request('web/init');
 
         this.csrf = init.csrf;
         this.user = init.user;
@@ -47,6 +44,12 @@
         this.bindShellEvents();
         this.setLoading(true);
         this.renderForm();
+
+        const list = await this.request('web/comment/getlist', {
+          resource: this.resource,
+          page: 1
+        });
+
         this.applyList(list);
         await this.initCaptcha();
       } catch (error) {
