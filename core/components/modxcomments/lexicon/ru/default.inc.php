@@ -20,6 +20,9 @@ $_lang['modxcomments.delete']='Удалить';
 $_lang['modxcomments.delete_confirm']='Удалить комментарий? Ответы в ветке сохранятся.';
 $_lang['modxcomments.status_updated']='Статус комментария обновлён.';
 $_lang['modxcomments.deleted']='Комментарий удалён.';
+$_lang['modxcomments.hard_delete']='Удалить полностью';
+$_lang['modxcomments.hard_delete_confirm']='Удалить комментарий без возможности восстановления? Все ответы на него и связанные голоса тоже будут удалены.';
+$_lang['modxcomments.hard_deleted']='Комментарий и его ответы полностью удалены.';
 $_lang['modxcomments.actions']='Действия';
 
 $_lang['area_modxcomments']='ModxComments';
