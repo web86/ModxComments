@@ -51,6 +51,32 @@ $_lang['setting_modxcomments.guest_status_desc']='Статус, который �
 $_lang['setting_modxcomments.user_status']='Статус комментария авторизованного пользователя';
 $_lang['setting_modxcomments.user_status_desc']='Статус нового комментария авторизованного MODX web-пользователя. Используйте "published" или "pending".';
 
+$_lang['setting_modxcomments.captcha_enabled']='Включить CAPTCHA';
+$_lang['setting_modxcomments.captcha_enabled_desc']='Включает защиту формы комментариев выбранным CAPTCHA-провайдером.';
+$_lang['setting_modxcomments.captcha_provider']='CAPTCHA-провайдер';
+$_lang['setting_modxcomments.captcha_provider_desc']='Провайдер CAPTCHA: turnstile, hcaptcha, recaptcha или yandex.';
+$_lang['setting_modxcomments.captcha_guests_only']='CAPTCHA только для гостей';
+$_lang['setting_modxcomments.captcha_guests_only_desc']='Если включено, CAPTCHA требуется только неавторизованным посетителям.';
+
+$_lang['setting_modxcomments.hcaptcha_site_key']='hCaptcha site key';
+$_lang['setting_modxcomments.hcaptcha_site_key_desc']='Публичный site key hCaptcha.';
+$_lang['setting_modxcomments.hcaptcha_secret_key']='hCaptcha secret key';
+$_lang['setting_modxcomments.hcaptcha_secret_key_desc']='Секретный ключ hCaptcha для серверной проверки.';
+
+$_lang['setting_modxcomments.recaptcha_version']='Google reCAPTCHA версия';
+$_lang['setting_modxcomments.recaptcha_version_desc']='Используйте v2 для видимого checkbox-виджета или v3 для невидимой score-проверки.';
+$_lang['setting_modxcomments.recaptcha_site_key']='Google reCAPTCHA site key';
+$_lang['setting_modxcomments.recaptcha_site_key_desc']='Публичный site key Google reCAPTCHA.';
+$_lang['setting_modxcomments.recaptcha_secret_key']='Google reCAPTCHA secret key';
+$_lang['setting_modxcomments.recaptcha_secret_key_desc']='Секретный ключ Google reCAPTCHA для серверной проверки.';
+$_lang['setting_modxcomments.recaptcha_min_score']='Минимальный score reCAPTCHA v3';
+$_lang['setting_modxcomments.recaptcha_min_score_desc']='Минимальный допустимый score для reCAPTCHA v3 от 0 до 1. По умолчанию: 0.5.';
+
+$_lang['setting_modxcomments.yandex_client_key']='Yandex SmartCaptcha client key';
+$_lang['setting_modxcomments.yandex_client_key_desc']='Ключ клиентской части Yandex SmartCaptcha.';
+$_lang['setting_modxcomments.yandex_server_key']='Yandex SmartCaptcha server key';
+$_lang['setting_modxcomments.yandex_server_key_desc']='Серверный ключ Yandex SmartCaptcha для проверки токена.';
+
 $_lang['setting_modxcomments.turnstile_enabled']='Включить Cloudflare Turnstile';
 $_lang['setting_modxcomments.turnstile_enabled_desc']='Включает проверку Cloudflare Turnstile при отправке комментариев. Также необходимо указать site key и secret key.';
 
