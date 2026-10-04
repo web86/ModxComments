@@ -21,10 +21,21 @@ class ModxComments
             'rateLimitWindow' => 60,
             'guestStatus' => 'published',
             'userStatus' => 'published',
+            'captchaEnabled' => false,
+            'captchaProvider' => 'turnstile',
+            'captchaGuestsOnly' => true,
             'turnstileEnabled' => false,
             'turnstileSiteKey' => '',
             'turnstileSecretKey' => '',
             'turnstileGuestsOnly' => true,
+            'hcaptchaSiteKey' => '',
+            'hcaptchaSecretKey' => '',
+            'recaptchaVersion' => 'v2',
+            'recaptchaSiteKey' => '',
+            'recaptchaSecretKey' => '',
+            'recaptchaMinScore' => 0.5,
+            'yandexClientKey' => '',
+            'yandexServerKey' => '',
             'notifyAdmin' => false,
             'notifyAdminEmail' => '',
             'notifyReplies' => false,
@@ -41,10 +52,33 @@ class ModxComments
             'rateLimitWindow' => (int) $modx->getOption('modxcomments.rate_limit_window', null, $defaults['rateLimitWindow']),
             'guestStatus' => (string) $modx->getOption('modxcomments.guest_status', null, $defaults['guestStatus']),
             'userStatus' => (string) $modx->getOption('modxcomments.user_status', null, $defaults['userStatus']),
+            'captchaEnabled' => (bool) $modx->getOption(
+                'modxcomments.captcha_enabled',
+                null,
+                $modx->getOption('modxcomments.turnstile_enabled', null, $defaults['captchaEnabled'])
+            ),
+            'captchaProvider' => strtolower(trim((string) $modx->getOption(
+                'modxcomments.captcha_provider',
+                null,
+                $defaults['captchaProvider']
+            ))),
+            'captchaGuestsOnly' => (bool) $modx->getOption(
+                'modxcomments.captcha_guests_only',
+                null,
+                $modx->getOption('modxcomments.turnstile_guests_only', null, $defaults['captchaGuestsOnly'])
+            ),
             'turnstileEnabled' => (bool) $modx->getOption('modxcomments.turnstile_enabled', null, $defaults['turnstileEnabled']),
-            'turnstileSiteKey' => (string) $modx->getOption('modxcomments.turnstile_site_key', null, $defaults['turnstileSiteKey']),
-            'turnstileSecretKey' => (string) $modx->getOption('modxcomments.turnstile_secret_key', null, $defaults['turnstileSecretKey']),
+            'turnstileSiteKey' => trim((string) $modx->getOption('modxcomments.turnstile_site_key', null, $defaults['turnstileSiteKey'])),
+            'turnstileSecretKey' => trim((string) $modx->getOption('modxcomments.turnstile_secret_key', null, $defaults['turnstileSecretKey'])),
             'turnstileGuestsOnly' => (bool) $modx->getOption('modxcomments.turnstile_guests_only', null, $defaults['turnstileGuestsOnly']),
+            'hcaptchaSiteKey' => trim((string) $modx->getOption('modxcomments.hcaptcha_site_key', null, $defaults['hcaptchaSiteKey'])),
+            'hcaptchaSecretKey' => trim((string) $modx->getOption('modxcomments.hcaptcha_secret_key', null, $defaults['hcaptchaSecretKey'])),
+            'recaptchaVersion' => strtolower(trim((string) $modx->getOption('modxcomments.recaptcha_version', null, $defaults['recaptchaVersion']))),
+            'recaptchaSiteKey' => trim((string) $modx->getOption('modxcomments.recaptcha_site_key', null, $defaults['recaptchaSiteKey'])),
+            'recaptchaSecretKey' => trim((string) $modx->getOption('modxcomments.recaptcha_secret_key', null, $defaults['recaptchaSecretKey'])),
+            'recaptchaMinScore' => (float) $modx->getOption('modxcomments.recaptcha_min_score', null, $defaults['recaptchaMinScore']),
+            'yandexClientKey' => trim((string) $modx->getOption('modxcomments.yandex_client_key', null, $defaults['yandexClientKey'])),
+            'yandexServerKey' => trim((string) $modx->getOption('modxcomments.yandex_server_key', null, $defaults['yandexServerKey'])),
             'notifyAdmin' => (bool) $modx->getOption('modxcomments.notify_admin', null, $defaults['notifyAdmin']),
             'notifyAdminEmail' => trim((string) $modx->getOption('modxcomments.notify_admin_email', null, $defaults['notifyAdminEmail'])),
             'notifyReplies' => (bool) $modx->getOption('modxcomments.notify_replies', null, $defaults['notifyReplies']),
@@ -68,11 +102,7 @@ class ModxComments
             'threadsPerPage' => max(1, (int) $this->config['threadsPerPage']),
             'locale' => (string) $this->modx->getOption('cultureKey', null, 'en'),
             'guestEmailRequired' => true,
-            'captcha' => array(
-                'enabled' => $this->shouldUseTurnstile($user),
-                'provider' => 'turnstile',
-                'siteKey' => (string) $this->config['turnstileSiteKey'],
-            ),
+            'captcha' => $this->getCaptchaPublicConfig($user),
         );
     }
 
@@ -721,25 +751,84 @@ class ModxComments
         return $created && (time() - $created) <= $seconds;
     }
 
-    protected function shouldUseTurnstile(array $user)
+    protected function getCaptchaProviderName()
     {
-        if (!$this->config['turnstileEnabled'] || trim($this->config['turnstileSiteKey']) === '') {
-            return false;
+        $provider = strtolower(trim((string) $this->config['captchaProvider']));
+        $allowed = array('turnstile', 'hcaptcha', 'recaptcha', 'yandex');
+
+        return in_array($provider, $allowed, true) ? $provider : 'turnstile';
+    }
+
+    protected function getCaptchaPublicConfig(array $user)
+    {
+        $provider = $this->getCaptchaProviderName();
+        $siteKey = '';
+        $extra = array();
+
+        if ($provider === 'turnstile') {
+            $siteKey = (string) $this->config['turnstileSiteKey'];
+        } elseif ($provider === 'hcaptcha') {
+            $siteKey = (string) $this->config['hcaptchaSiteKey'];
+        } elseif ($provider === 'recaptcha') {
+            $siteKey = (string) $this->config['recaptchaSiteKey'];
+            $version = $this->config['recaptchaVersion'] === 'v3' ? 'v3' : 'v2';
+            $extra['version'] = $version;
+            if ($version === 'v3') {
+                $extra['action'] = 'comment';
+            }
+        } elseif ($provider === 'yandex') {
+            $siteKey = (string) $this->config['yandexClientKey'];
         }
 
-        return !$this->config['turnstileGuestsOnly'] || !$user['authenticated'];
+        $enabled = (bool) $this->config['captchaEnabled']
+            && $siteKey !== ''
+            && (!$this->config['captchaGuestsOnly'] || !$user['authenticated']);
+
+        return array_merge(array(
+            'enabled' => $enabled,
+            'provider' => $provider,
+            'siteKey' => $siteKey,
+        ), $extra);
     }
 
     protected function assertCaptcha(array $data, array $user)
     {
-        if (!$this->shouldUseTurnstile($user)) return;
+        $captcha = $this->getCaptchaPublicConfig($user);
+        if (empty($captcha['enabled'])) return;
 
-        require_once $this->config['corePath'] . 'model/modxcomments/captcha/turnstile.class.php';
-        $provider = new ModxCommentsTurnstile($this->modx, $this->config['turnstileSecretKey']);
-        $token = isset($data['captcha_token']) ? (string) $data['captcha_token'] : '';
-        $remoteIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        $token = isset($data['captcha_token']) ? trim((string) $data['captcha_token']) : '';
+        $remoteIp = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+        $providerName = $captcha['provider'];
+        $provider = null;
 
-        if (!$provider->verify($token, $remoteIp)) {
+        if ($providerName === 'turnstile') {
+            require_once $this->config['corePath'] . 'model/modxcomments/captcha/turnstile.class.php';
+            $provider = new ModxCommentsTurnstile($this->modx, $this->config['turnstileSecretKey']);
+        } elseif ($providerName === 'hcaptcha') {
+            require_once $this->config['corePath'] . 'model/modxcomments/captcha/hcaptcha.class.php';
+            $provider = new ModxCommentsHCaptcha(
+                $this->modx,
+                $this->config['hcaptchaSecretKey'],
+                $this->config['hcaptchaSiteKey']
+            );
+        } elseif ($providerName === 'recaptcha') {
+            require_once $this->config['corePath'] . 'model/modxcomments/captcha/recaptcha.class.php';
+            $provider = new ModxCommentsReCaptcha(
+                $this->modx,
+                $this->config['recaptchaSecretKey'],
+                $this->config['recaptchaVersion'],
+                $this->config['recaptchaMinScore'],
+                'comment'
+            );
+        } elseif ($providerName === 'yandex') {
+            require_once $this->config['corePath'] . 'model/modxcomments/captcha/yandex.class.php';
+            $provider = new ModxCommentsYandexSmartCaptcha(
+                $this->modx,
+                $this->config['yandexServerKey']
+            );
+        }
+
+        if (!$provider || !$provider->verify($token, array('remoteIp' => $remoteIp))) {
             throw new RuntimeException('captcha_failed');
         }
     }
