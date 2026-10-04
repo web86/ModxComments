@@ -8,10 +8,57 @@ if ($contextKey === '' || strtolower($contextKey) === 'mgr') {
 $assetsUrl = rtrim($modx->getOption('modxcomments.assets_url', null, $modx->getOption('assets_url') . 'components/modxcomments/'), '/') . '/';
 $apiUrl = $assetsUrl . 'connector.php';
 
-$signingKey = (string) $modx->getOption('modxcomments.resource_signing_key', null, '');
-$resourceToken = $signingKey !== ''
-    ? hash_hmac('sha256', $resourceId . '|' . $contextKey, $signingKey)
-    : '';
+$signingKey = trim((string) $modx->getOption('modxcomments.resource_signing_key', null, ''));
+
+if ($signingKey === '') {
+    $settingClass = class_exists('MODX\\Revolution\\modSystemSetting')
+        ? 'MODX\\Revolution\\modSystemSetting'
+        : 'modSystemSetting';
+    $setting = $modx->getObject($settingClass, 'modxcomments.resource_signing_key');
+
+    if (!$setting) {
+        $setting = $modx->newObject($settingClass);
+        if ($setting) {
+            $setting->set('key', 'modxcomments.resource_signing_key');
+            $setting->set('namespace', 'modxcomments');
+            $setting->set('area', 'modxcomments');
+            $setting->set('xtype', 'text-password');
+        }
+    }
+
+    if ($setting && trim((string) $setting->get('value')) === '') {
+        try {
+            $setting->set('value', bin2hex(random_bytes(32)));
+        } catch (Throwable $e) {
+            $setting->set('value', hash('sha256', uniqid('', true) . mt_rand()));
+        }
+    }
+
+    if ($setting && $setting->save()) {
+        $signingKey = trim((string) $setting->get('value'));
+        $cacheManager = $modx->getCacheManager();
+        if ($cacheManager) {
+            $cacheManager->refresh(array(
+                'system_settings' => array(),
+                'context_settings' => array(),
+                'resource' => array(),
+            ));
+        }
+    }
+}
+
+if ($signingKey === '') {
+    $logLevel = class_exists('MODX\\Revolution\\modX')
+        ? constant('MODX\\Revolution\\modX::LOG_LEVEL_ERROR')
+        : constant('modX::LOG_LEVEL_ERROR');
+    $modx->log($logLevel, '[ModxComments] Resource signing key is missing; comments widget was not initialized.');
+
+    return '<div class="modx-comments mc-status mc-status-error">'
+        . 'ModxComments configuration error: resource signing key is missing.'
+        . '</div>';
+}
+
+$resourceToken = hash_hmac('sha256', $resourceId . '|' . $contextKey, $signingKey);
 
 $modx->regClientCSS($assetsUrl . 'css/comments.css');
 $modx->regClientScript($assetsUrl . 'js/comments.js');
