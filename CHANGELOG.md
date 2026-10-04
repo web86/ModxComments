@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-rc3 — Legacy MODX 2 upgrade repair
+- Detect MODX 2/3 from `core/docs/version.inc.php` instead of autoloaded class availability.
+- Remove the install resolver's silent class-mismatch exit so legacy MODX 2 installs cannot skip settings/menu creation.
+- Use deterministic version routing in the runtime service, snippet fallback, and manager controller.
+- Log successful completion of the install resolver with the detected MODX version.
+- Use a new transport signature so MODX 2 cannot reuse an unpacked rc2 package.
+
 ## 1.0.0-rc2 — Upgrade reliability
 - Use a new transport signature so MODX 2 cannot reuse an unpacked `1.0.0-rc1` package after the ZIP has changed.
 - Register both namespace core and assets paths in the transport.
