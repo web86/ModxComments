@@ -153,6 +153,16 @@ if(!$signingSetting || trim((string)$signingSetting->get('value'))===''){
     return false;
 }
 
+foreach(array(
+    'modxcomments.turnstile_enabled',
+    'modxcomments.turnstile_guests_only'
+) as $legacyCaptchaKey){
+    $legacyCaptchaSetting=$modx->getObject($settingClass,$legacyCaptchaKey);
+    if($legacyCaptchaSetting){
+        $legacyCaptchaSetting->remove();
+    }
+}
+
 $menu=$modx->getObject($menuClass,'modxcomments');
 if(!$menu){
     $menu=$modx->newObject($menuClass);
