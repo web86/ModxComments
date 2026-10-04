@@ -54,7 +54,7 @@ $_lang['setting_modxcomments.user_status_desc']='Status assigned to new comments
 $_lang['setting_modxcomments.captcha_enabled']='Enable CAPTCHA';
 $_lang['setting_modxcomments.captcha_enabled_desc']='Protect the comment form with the selected CAPTCHA provider.';
 $_lang['setting_modxcomments.captcha_provider']='CAPTCHA provider';
-$_lang['setting_modxcomments.captcha_provider_desc']='CAPTCHA provider: turnstile, hcaptcha, recaptcha, or yandex.';
+$_lang['setting_modxcomments.captcha_provider_desc']='CAPTCHA provider: none, turnstile, hcaptcha, recaptcha, or yandex.';
 $_lang['setting_modxcomments.captcha_guests_only']='CAPTCHA for guests only';
 $_lang['setting_modxcomments.captcha_guests_only_desc']='If enabled, CAPTCHA is required only for unauthenticated visitors.';
 
