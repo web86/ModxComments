@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1-pl — Stable unified release
+- Promote the unified MODX 2.8 + MODX 3.0–3.2 package to stable.
+- Includes threaded AJAX comments, moderation, guest/authenticated posting, admin identity, edit/delete windows, voting, pagination, email notifications, permanent manager deletion, and pluggable CAPTCHA providers.
+- Preserve the shared security model with CSRF protection, HMAC resource binding, rate limiting, safe guest identity cookies, manager token validation, and server-side CAPTCHA verification.
+- Keep one transport package for both supported MODX generations.
+
 ## 1.0.0-rc6 — Pluggable CAPTCHA providers
 - Add a generic CAPTCHA provider layer shared by MODX 2 and MODX 3.
 - Support Cloudflare Turnstile, hCaptcha, Google reCAPTCHA v2/v3, Yandex SmartCaptcha, and an explicit none provider.
