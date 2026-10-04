@@ -11,7 +11,12 @@ $apiUrl = $assetsUrl . 'connector.php';
 $signingKey = trim((string) $modx->getOption('modxcomments.resource_signing_key', null, ''));
 
 if ($signingKey === '') {
-    $settingClass = class_exists('MODX\\Revolution\\modSystemSetting')
+    $versionData = @include MODX_CORE_PATH . 'docs/version.inc.php';
+    $fullVersion = is_array($versionData) && !empty($versionData['full_version'])
+        ? (string) $versionData['full_version']
+        : (is_array($versionData) && !empty($versionData['version']) ? (string) $versionData['version'] : '2.0.0');
+    $isModx3 = version_compare($fullVersion, '3.0.0', '>=');
+    $settingClass = $isModx3
         ? 'MODX\\Revolution\\modSystemSetting'
         : 'modSystemSetting';
     $setting = $modx->getObject($settingClass, 'modxcomments.resource_signing_key');
@@ -48,7 +53,14 @@ if ($signingKey === '') {
 }
 
 if ($signingKey === '') {
-    $logLevel = class_exists('MODX\\Revolution\\modX')
+    if (!isset($isModx3)) {
+        $versionData = @include MODX_CORE_PATH . 'docs/version.inc.php';
+        $fullVersion = is_array($versionData) && !empty($versionData['full_version'])
+            ? (string) $versionData['full_version']
+            : (is_array($versionData) && !empty($versionData['version']) ? (string) $versionData['version'] : '2.0.0');
+        $isModx3 = version_compare($fullVersion, '3.0.0', '>=');
+    }
+    $logLevel = $isModx3
         ? constant('MODX\\Revolution\\modX::LOG_LEVEL_ERROR')
         : constant('modX::LOG_LEVEL_ERROR');
     $modx->log($logLevel, '[ModxComments] Resource signing key is missing; comments widget was not initialized.');
