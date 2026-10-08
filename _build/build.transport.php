@@ -134,7 +134,7 @@ $builder->setPackageAttributes(array(
         "ModxComments\n\nCopyright (c) 2026 web86.\nAll rights reserved.\n"
     ),
     'readme'=>$readPackageText(
-        $root.'/docs/INSTALL.md',
+        $root.'/_build/package.readme.md',
         "ModxComments 1.0.1-pl\nSupports MODX Revolution 2.8.x and 3.x.\n"
     ),
     'changelog'=>$readPackageText(
